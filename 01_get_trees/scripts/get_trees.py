@@ -98,8 +98,8 @@ def main():
             # Downloading filenames
             tree_url = ftp + line + '/' + trees
             data_url = ftp + line + '/' + data
-            gene_url = ftp + line + '/' + data
-            prot_url = ftp + line + '/' + data
+            gene_url = ftp + line + '/' + gene
+            prot_url = ftp + line + '/' + prot
 
             tree_ofile = line + '_' + trees
             data_ofile = line + '_' + data

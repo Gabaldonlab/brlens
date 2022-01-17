@@ -16,6 +16,7 @@ Month 2022
 import sys
 import os
 from optparse import OptionParser
+from uniprot_parse import parse_up
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -35,3 +36,4 @@ parser.add_option('-f', '--file', dest='ifile',
 (options, args) = parser.parse_args()
 
 # Definitions ----
+print(parse_up('02_protein_info/data/uniprotein.txt'))

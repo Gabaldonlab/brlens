@@ -54,8 +54,27 @@ def rmkey(dict, key):
     return dict
 
 
+def rmbwbr(string, upper_del, lower_del):
+    nsets = string.count(upper_del)
+    ostr = ''
+    if nsets == 1:
+        ostr = string.split(upper_del)[0]
+        ostr += string.split(lower_del)[1]
+    else:
+        parts = string.split(upper_del)
+        ostrl = list()
+        for i, item in enumerate(parts):
+            if not i % 2:
+                ostrl.append(item.replace(lower_del, ''))
+        ostr = ' '.join(ostrl)
+        ostr.replace('  ', ' ').replace('..', '.').replace(',,', ',')
+
+    return ostr
+
+
 def hola():
     print('hola')
+
 
 # def main():
 #     cmd = 'flake8'

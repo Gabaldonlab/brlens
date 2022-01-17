@@ -27,13 +27,14 @@ def parse_up(file):
         if 'DE   ' in line and 'RecName:' in line:
             # Gene Name
             prot = line[14:].split('=', 1)[1].replace(';', '')
-            prot = prot.replace('\n', '')
+            prot = prot.replace('\n', '').rsplit(' ', 1)[0]
             protinfo['prot'] = prot
         elif 'GN   ' in line:
             # Gene abbreviation
             for item in line[5:].split(';'):
                 if 'Name=' in item:
-                    protinfo['gene'] = item.replace('Name=', '')
+                    genenm = item.replace('Name=', '').rsplit(' ', 1)[0]
+                    protinfo['gene'] = genenm
         elif 'CC   ' in line:
             if 'FUNCTION: ' in line:
                 toapp = 'fun'
@@ -52,11 +53,21 @@ def parse_up(file):
 
     protinfo = rmkey(protinfo, 'Others')
 
+    locs = protinfo.get('loc')
+    locs = locs.split(' Note=', 1)[0].split('. ')
+
     oline = file.rsplit('/', 1)[1].rsplit('.', 1)[0] + '\t'
     for i, item in enumerate(protinfo):
-        if i != len(protinfo):
-            oline += protinfo[item] + '\t'
+        if '{' in protinfo[item] and '}' in protinfo[item]:
+            oline += rmbwbr(protinfo[item], '{', '}') + '\t'
         else:
-            oline += protinfo[item]
+            oline += protinfo[item] + '\t'
+
+    for i, loc in enumerate(locs):
+        sloc = loc.split(',', 1)[0].split(' ', 1)[0].split('{', 1)[0]
+        if i != len(locs):
+            oline += sloc + '\t'
+        else:
+            oline += sloc
 
     return oline
