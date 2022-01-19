@@ -19,6 +19,7 @@ from os.path import isfile
 from os import stat
 from thread import thread
 import time
+import ftplib
 
 # Script options definition ----
 parser = OptionParser()
@@ -75,13 +76,13 @@ def main():
         ifile = '../data/phylome_list.txt'
         pdbids = open(ifile)
     elif options.all:
-        ftp.cwd('phylomedb/phylomes/')
+        ftp = ftplib.FTP('phylomedb.org')
         ftp.login()
         ftp.cwd('phylomedb/phylomes/')
         files = ftp.nlst()
 
         pdbids = [item.replace('phylome_', '') for item in files]
-        print(pdbids)
+        threads = 48
     else:
         workdir = options.workdir
         threads = options.threads
@@ -91,64 +92,64 @@ def main():
     sleeptime = 1
     tasks = list()
 
-    # for line in pdbids:  # It needs open(ifile)
-    #     line = line.replace('\n', '')
-    #     if line != '':
-    #         if (len(tasks) >= threads):
-    #             # Wait for a process to finish
-    #             done = False
-    #             while not done:
-    #                 time.sleep(sleeptime)
-    #                 for task in tasks:
-    #                     if not task.is_alive():
-    #                         # With these conditions the thread is ended, print
-    #                         # and free a slot
-    #                         task.show()
-    #                         tasks.remove(task)
-    #                         done = True
-    #
-    #         # Downloading filenames
-    #         tree_url = ftp + line + '/' + trees
-    #         data_url = ftp + line + '/' + data
-    #         gene_url = ftp + line + '/' + gene
-    #         prot_url = ftp + line + '/' + prot
-    #
-    #         tree_ofile = line + '_' + trees
-    #         data_ofile = line + '_' + data
-    #         gene_ofile = line + '_' + gene
-    #         prot_ofile = line + '_' + prot
-    #
-    #         # Download trees
-    #         if not yet_downloaded(workdir, tree_ofile):
-    #             tree_thread = thread(line, tree_url, workdir, tree_ofile)
-    #             tree_thread.show()
-    #             tree_thread.start()
-    #             tasks.append(tree_thread)
-    #
-    #         # Download phylome data
-    #         if not yet_downloaded(workdir, data_ofile):
-    #             data_thread = thread(line, data_url, workdir, data_ofile)
-    #             data_thread.show()
-    #             data_thread.start()
-    #             tasks.append(data_thread)
-    #
-    #         # Download protein data
-    #         if not yet_downloaded(workdir, gene_ofile):
-    #             gene_thread = thread(line, gene_url, workdir, gene_ofile)
-    #             gene_thread.show()
-    #             gene_thread.start()
-    #             tasks.append(gene_thread)
-    #
-    #         # Download protein data
-    #         if not yet_downloaded(workdir, prot_ofile):
-    #             prot_thread = thread(line, prot_url, workdir, prot_ofile)
-    #             prot_thread.show()
-    #             prot_thread.start()
-    #             tasks.append(prot_thread)
-    #
-    # for task in tasks:
-    #     task.join()
-    #     task.show()
+    for line in pdbids:  # It needs open(ifile)
+        line = line.replace('\n', '')
+        if line != '':
+            if (len(tasks) >= threads):
+                # Wait for a process to finish
+                done = False
+                while not done:
+                    time.sleep(sleeptime)
+                    for task in tasks:
+                        if not task.is_alive():
+                            # With these conditions the thread is ended, print
+                            # and free a slot
+                            task.show()
+                            tasks.remove(task)
+                            done = True
+
+            # Downloading filenames
+            tree_url = ftp + line + '/' + trees
+            data_url = ftp + line + '/' + data
+            gene_url = ftp + line + '/' + gene
+            prot_url = ftp + line + '/' + prot
+
+            tree_ofile = line + '_' + trees
+            data_ofile = line + '_' + data
+            gene_ofile = line + '_' + gene
+            prot_ofile = line + '_' + prot
+
+            # Download trees
+            if not yet_downloaded(workdir, tree_ofile):
+                tree_thread = thread(line, tree_url, workdir, tree_ofile)
+                tree_thread.show()
+                tree_thread.start()
+                tasks.append(tree_thread)
+
+            # Download phylome data
+            if not yet_downloaded(workdir, data_ofile):
+                data_thread = thread(line, data_url, workdir, data_ofile)
+                data_thread.show()
+                data_thread.start()
+                tasks.append(data_thread)
+
+            # Download protein data
+            if not yet_downloaded(workdir, gene_ofile):
+                gene_thread = thread(line, gene_url, workdir, gene_ofile)
+                gene_thread.show()
+                gene_thread.start()
+                tasks.append(gene_thread)
+
+            # Download protein data
+            if not yet_downloaded(workdir, prot_ofile):
+                prot_thread = thread(line, prot_url, workdir, prot_ofile)
+                prot_thread.show()
+                prot_thread.start()
+                tasks.append(prot_thread)
+
+    for task in tasks:
+        task.join()
+        task.show()
 
 
 if __name__ == '__main__':
