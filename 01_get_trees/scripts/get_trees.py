@@ -92,7 +92,7 @@ def main():
     sleeptime = 1
     tasks = list()
 
-    for line in pdbids:  # It needs open(ifile)
+    for line in pdbids:
         line = line.replace('\n', '')
         if line != '':
             if (len(tasks) >= threads):

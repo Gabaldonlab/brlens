@@ -14,9 +14,21 @@ Month 2022
 '''
 
 # Import libraries ----
+import os
+import sys
+import numpy as np
+from scipy import stats
+import statistics as st
 import ete3
-import pandas as pd
-from rooted_phylomes import ROOTED_PHYLOMES
+
+import time
+
+# Path configuration to import utils ----
+filedir = os.path.abspath(__file__)
+projdir = filedir.rsplit('/', 3)[0]
+sys.path.append(projdir)
+
+from utils import *
 
 
 # Definitions ----
@@ -24,59 +36,150 @@ def get_species_tag(node):
     return node.split("_")[1]
 
 
-# Read tree
-file_path = '03_calc_dists/data/0003_best_trees.txt'
-file = open(file_path).read()
-phylome_id = file_path.rsplit('/', 1)[1].split('_', 1)[0]
-phylome_no = int(file_path.rsplit('/', 1)[1].split('_', 1)[0])
+class phylome_tree(object):
+    '''
+    Object that allows to store the tree and its data
+    '''
 
-# Read protein file and get its protein
-prot_df = pd.read_csv('03_calc_dists/data/0003_all_protein_names.txt', sep='\t')
+    def __init__(self, phylome_id, seed_id, model, lnl, tree,
+                 root_dict, prot_dict, distfile, sumfile):
+        self.phylome_id = phylome_id
+        self.seed_id = seed_id
+        self.model = model
+        self.lnl = lnl
+        self.tree = ete3.PhyloTree(tree, sp_naming_function=get_species_tag)
+        self.root_dict = root_dict
+        self.prot_dict = prot_dict
+        self.distfile = distfile
+        self.sumfile = sumfile
 
-# For starts for each tree
-for tree_df in file.split('\n'):
-    tree = tree_df.split('\t')
-    t = ete3.PhyloTree(tree[-1], sp_naming_function=get_species_tag)
+    def root(self):
+        '''
+        Root the tree according to an outgroup
+        '''
 
-    # Get the sequences list
-    seqsl = t.get_leaf_names()
+        og = self.tree.get_farthest_oldest_leaf(self.root_dict)
+        self.ogseq = og.get_leaf_names()[0]
+        self.tree.set_outgroup(og)
 
-    if 'Phy' not in tree[0]:
-        continue
-    elif len(seqsl) != len(set(seqsl)):
-        continue
-    else:
-        pass
+    def get_refpars(self):
+        mphsptrees = dict()
+        mphgtrees = dict()
+        for i, subtree in enumerate(self.tree.traverse()):
+            sps = [sp.split('_')[1] for sp in subtree.get_leaf_names()]
+            if len(sps) == len(set(sps)) and len(sps) > 10:
+                mphsptrees[len(sps)] = subtree
+            elif len(sps) > 10:
+                mphgtrees[len(sps) - len(set(sps))] = subtree
 
-    prot = list(prot_df[prot_df['## PhylomeDB Id'] == tree[0]]['Protein name'])
-
-    # arreglar!
-    if len(prot) > 1:
-        print('Careful! Double seed in database tree')
-        prot = prot[0]
-    else:
-        prot = prot[0]
-
-    # Root
-    og = t.get_farthest_oldest_leaf(ROOTED_PHYLOMES[phylome_no])
-    ogseq = og.get_leaf_names()[0]
-    t.set_outgroup(og)
-
-    # Get duplications
-    t.get_descendant_evol_events()
-
-    # Get distances
-    for seq in seqsl:
-        if seq != tree[0]:
-            seed_dist = t.get_distance(seq, tree[0])
+        if len(mphsptrees) > 0:
+            rtree = mphsptrees.get(max(mphsptrees.keys()))
+        elif len(mphgtrees) > 0:
+            rtree = mphgtrees.get(min(mphgtrees.keys()))
         else:
-            seed_dist = 'NA'
+            rtree = self.tree
 
-        if seq != ogseq:
-            og_dist = t.get_distance(seq, ogseq)
+        root = rtree.get_common_ancestor(rtree)
+        self.rwdth = rtree.get_farthest_leaf()[1]
+
+        rtldist = list()
+        for leaf in rtree.get_leaf_names():
+            rtldist.append(rtree.get_distance(root, leaf))
+
+        self.rmean = np.mean(rtldist)
+        self.rmed = np.median(rtldist)
+        self.rskew = stats.skew(rtldist)
+        self.rkurt = stats.kurtosis(rtldist)
+        self.sd = st.stdev(rtldist)
+
+        self.rstats = [self.phylome_id, self.prot_dict[self.seed_id],
+                       self.rwdth, self.rmean, self.rmed, self.rskew,
+                       self.rkurt, self.sd]
+
+    def get_dists(self, seqsl):
+        '''
+        Calculate the distances between the
+        '''
+        distl = list()
+        for seq in self.seqsl:
+            if seq != self.seed_id:
+                seed_dist = self.tree.get_distance(seq, self.seed_id)
+            else:
+                seed_dist = 'NA'
+
+            if seq != self.ogseq:
+                og_dist = self.tree.get_distance(seq, self.ogseq)
+            else:
+                og_dist = 'NA'
+
+            if seed_dist != 'NA' and og_dist != 'NA':
+                seqdistl = [self.phylome_id, self.seed_id,
+                            self.prot_dict[self.seed_id], seq,
+                            og_dist, seed_dist, og_dist / self.rmed,
+                            seed_dist / self.rmed]
+                distl.append(seqdistl)
+
+        self.distl = distl
+
+    def write_ofiles(self):
+        for item in self.distl:
+            self.distfile.write('\t'.join(str(v) for v in item) + '\n')
+        self.sumfile.write('\t'.join(str(v) for v in self.rstats) + '\n')
+
+    def run(self):
+        '''
+        Run all the pipe to obtain the distances
+        '''
+
+        self.seqsl = self.tree.get_leaf_names()
+        if 'Phy' in self.seed_id and len(self.seqsl) == len(set(self.seqsl)):
+            self.root()
+            self.get_refpars()
+            self.get_dists(self.seqsl)
+            self.write_ofiles()
         else:
-            og_dist = 'NA'
+            print(('Tree cannot be parsed, seed or more than one sequences ',
+                   'equally named.'))
 
-        # if seed_dist != 'NA' and og_dist != 'NA':
-        #     print('%s\t%s\t%s\t%s\t%s' % (phylome_id, prot, seq,
-        #                                   og_dist, seed_dist))
+
+# def main():
+    # Read tree
+    # start = time.time()
+#     file_path = '03_calc_dists/data/0003_best_trees.txt'
+#     phylome_id = file_path.rsplit('/', 1)[1].split('_', 1)[0]
+#     phylome_no = int(file_path.rsplit('/', 1)[1].split('_', 1)[0])
+#     # end = time.time()
+#
+#     # print('Time of reading the phylome: %s' % (end - start))
+#
+#     # Read protein file and get its protein
+#     # start = time.time()
+#     prot_dict = csv_to_dict('03_calc_dists/data/0003_all_protein_names.txt',
+#                             sep='\t')
+#     # end = time.time()
+#
+#     # print('Time of reading the protein file: %s' % (end - start))
+#
+#     dist_file = open('03_calc_dists/outputs/dist_ofile.txt', 'w')
+#     dist_file.write('phylome_id\tseed\tprot_id\tdist_seq\tog_dist\tseed_dist\tog_ndist\tseed_ndist\n')
+#     gene_sum = open('03_calc_dists/outputs/sum_ofile.txt', 'w')
+#     gene_sum.write('phylome_id\tprot\twidth\tmean\tmedian\tskew\tkurt\tsd\n')
+#     for tree in open(file_path):
+#         # print(tree)
+#         tree = tree.split('\t')
+#         tree1 = phylome_tree(phylome_id, tree[0], tree[1], tree[2], tree[3],
+#                              ROOTED_PHYLOMES[phylome_no], prot_dict,
+#                              dist_file, gene_sum)
+#
+#         # start = time.time()
+#         tree1.run()
+#         # end = time.time()
+#
+#         # print('Time of running the tree functions: %s' % (end - start))
+#
+#     dist_file.close()
+#     gene_sum.close()
+#
+#
+# if __name__ == '__main__':
+#     main()
