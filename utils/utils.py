@@ -72,6 +72,19 @@ def rmbwbr(string, upper_del, lower_del):
     return ostr
 
 
+def csv_to_dict(file, sep):
+    '''
+    It has to be a two columns csv.
+    '''
+    odict = dict()
+    for line in open(file):
+        if line != '' and '#' not in line:
+            elements = line.replace('\n', '').split(sep)
+            odict[elements[0]] = elements[1]
+
+    return odict
+
+
 def hola():
     print('hola')
 
