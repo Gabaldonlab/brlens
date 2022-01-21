@@ -92,7 +92,7 @@ class phylome_tree(object):
         self.rkurt = stats.kurtosis(rtldist)
         self.sd = st.stdev(rtldist)
 
-        self.rstats = :self.phylome_id, self.prot_dict.get(self.seed_id, 'NA'),
+        self.rstats = [self.phylome_id, self.prot_dict.get(self.seed_id, 'NA'),
                        self.rwdth, self.rmean, self.rmed, self.rskew,
                        self.rkurt, self.sd]
 
