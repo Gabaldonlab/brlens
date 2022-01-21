@@ -92,7 +92,7 @@ class phylome_tree(object):
         self.rkurt = stats.kurtosis(rtldist)
         self.sd = st.stdev(rtldist)
 
-        self.rstats = [self.phylome_id, self.prot_dict[self.seed_id],
+        self.rstats = :self.phylome_id, self.prot_dict.get(self.seed_id, 'NA'),
                        self.rwdth, self.rmean, self.rmed, self.rskew,
                        self.rkurt, self.sd]
 
@@ -114,7 +114,7 @@ class phylome_tree(object):
 
             if seed_dist != 'NA' and og_dist != 'NA':
                 seqdistl = [self.phylome_id, self.seed_id,
-                            self.prot_dict[self.seed_id], seq,
+                            self.prot_dict.get(self.seed_id, 'NA'), seq,
                             og_dist, seed_dist, og_dist / self.rmed,
                             seed_dist / self.rmed]
                 distl.append(seqdistl)
