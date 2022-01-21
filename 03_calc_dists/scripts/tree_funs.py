@@ -72,24 +72,25 @@ class phylome_tree(object):
         mphgtrees = dict()
         for i, subtree in enumerate(self.tree.traverse()):
             sps = [sp.split('_')[1] for sp in subtree.get_leaf_names()]
-            if len(sps) == len(set(sps)) and len(sps) > 10:
+            if (len(sps) == len(set(sps)) and len(sps) > 10 and
+                    subtree.get_farthest_leaf()[1] != 0):
                 mphsptrees[len(sps)] = subtree
-            elif len(sps) > 10:
+            elif len(sps) > 10 and subtree.get_farthest_leaf()[1] != 0:
                 mphgtrees[len(sps) - len(set(sps))] = subtree
 
         if len(mphsptrees) > 0:
-            rtree = mphsptrees.get(max(mphsptrees.keys()))
+            self.rtree = mphsptrees.get(max(mphsptrees.keys()))
         elif len(mphgtrees) > 0:
-            rtree = mphgtrees.get(min(mphgtrees.keys()))
+            self.rtree = mphgtrees.get(min(mphgtrees.keys()))
         else:
-            rtree = self.tree
+            self.rtree = self.tree
 
-        root = rtree.get_common_ancestor(rtree)
-        self.rwdth = rtree.get_farthest_leaf()[1]
+        root = self.rtree.get_common_ancestor(self.rtree)
+        self.rwdth = self.rtree.get_farthest_leaf()[1]
 
         rtldist = list()
-        for leaf in rtree.get_leaf_names():
-            rtldist.append(rtree.get_distance(root, leaf))
+        for leaf in self.rtree.get_leaf_names():
+            rtldist.append(self.rtree.get_distance(root, leaf))
 
         self.rmean = np.mean(rtldist)
         self.rmed = np.median(rtldist)
