@@ -82,8 +82,8 @@ def main():
         # pdbftp.cwd('phylomedb/phylomes/')
         # files = pdbftp.nlst()
         # pdbids = [item.replace('phylome_', '') for item in files]
-        
-        pdbids = list(ROOTED_PHYLOMES.keys())
+
+        pdbids = [str(item).zfill(4) for item in list(ROOTED_PHYLOMES.keys())]
         threads = 4
         workdir = '../outputs'
     else:
