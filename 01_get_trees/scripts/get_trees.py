@@ -76,13 +76,14 @@ def main():
         ifile = '../data/phylome_list.txt'
         pdbids = open(ifile)
     elif options.all:
-        ftp = ftplib.FTP('phylomedb.org')
-        ftp.login()
-        ftp.cwd('phylomedb/phylomes/')
-        files = ftp.nlst()
+        pdbftp = ftplib.FTP('phylomedb.org')
+        pdbftp.login()
+        pdbftp.cwd('phylomedb/phylomes/')
+        files = pdbftp.nlst()
 
         pdbids = [item.replace('phylome_', '') for item in files]
-        threads = 48
+        threads = 4
+        workdir = '../outputs'
     else:
         workdir = options.workdir
         threads = options.threads
