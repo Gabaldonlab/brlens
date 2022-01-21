@@ -139,7 +139,8 @@ class phylome_tree(object):
 
         self.seqsl = self.tree.get_leaf_names()
         if ('Phy' in self.seed_id and
-                len(self.seqsl) == len(set(self.seqsl)) and self.seqsl > 10):
+                len(self.seqsl) == len(set(self.seqsl)) and
+                len(self.seqsl) > 10):
             self.root()
             self.get_refpars()
             self.get_dists(self.seqsl)
