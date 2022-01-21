@@ -25,14 +25,20 @@ sys.path.append(projdir)
 from utils import *
 
 # Script options definition ----
-# parser = OptionParser()
-# parser.add_option('-d', '--def', dest='default',
-#                   help='Default configurations to execute with our data.',
-#                   action='store_true')
-# parser.add_option('-f', '--file', dest='ifile',
-#                   help='In file',
-#                   metavar='<path/to/file.txt>')
-# (options, args) = parser.parse_args()
+parser = OptionParser()
+parser.add_option('-d', '--def', dest='default',
+                  help='Default configurations to execute with our data.',
+                  action='store_true')
+parser.add_option('-f', '--fold', dest='ifolder',
+                  help='In files (in txt) folders',
+                  metavar='<path/to/file.txt>')
+parser.add_option('-w', '--wd', dest='workdir',
+                  help='working directory',
+                  metavar='<path/to/workdir>')
+parser.add_option('-t', '--threads', dest='threads',
+                  help='working directory',
+                  metavar='<path/to/workdir>')
+(options, args) = parser.parse_args()
 
 
 # Definitions ----
@@ -52,10 +58,16 @@ def yet_calculated(dir, name):
 
 
 def main():
-    files = glob.glob('../data/*_best_trees.txt')
-    protfiles = glob.glob('../data/*_all_protein_names.txt')
-    workdir = '../outputs'
-    threads = 4
+    if options.default:
+        files = glob.glob('../data/*_best_trees.txt')
+        protfiles = glob.glob('../data/*_all_protein_names.txt')
+        workdir = '../outputs'
+        threads = 4
+    else:
+        files = glob.glob(options.ifolder + '*_best_trees.txt')
+        protfiles = glob.glob(options.ifolder + '*_all_protein_names.txt')
+        workdir = options.workdir
+        threads = options.threads
 
     tasks = list()
 
