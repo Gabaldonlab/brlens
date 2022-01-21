@@ -60,7 +60,7 @@ class phylome_tree(object):
 
         if any(sp in self.root_dict for sp in self.tree.get_species()):
             ogdval = max([self.root_dict.get(sp, 0) for sp in self.tree.get_species()])
-            ogsps = [k for k, val in self.root_dict.items() if val == ogdval][0]
+            ogsps = [k for k, val in self.root_dict.items() if val == ogdval and k in self.tree.get_species()][0]
             self.ogseq = [seq for seq in self.tree.get_leaf_names() if ogsps in seq][0]
         else:
             self.ogseq = self.tree.get_farthest_leaf()[0].get_leaf_names()[0]
@@ -146,8 +146,7 @@ class phylome_tree(object):
             self.get_dists(self.seqsl)
             self.write_ofiles()
         else:
-            print(str('Tree cannot be parsed, seed or more than one sequences ',
-                      'equally named.'))
+            print('Tree cannot be parsed, seed or more than one sequences equally named.')
 
 
 # def main():
