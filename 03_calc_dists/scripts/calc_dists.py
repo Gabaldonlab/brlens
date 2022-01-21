@@ -55,7 +55,7 @@ def main():
     files = glob.glob('../data/*_best_trees.txt')
     protfiles = glob.glob('../data/*_all_protein_names.txt')
     workdir = '../outputs'
-    threads = 2
+    threads = 4
 
     tasks = list()
 
