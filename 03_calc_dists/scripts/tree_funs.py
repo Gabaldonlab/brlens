@@ -61,11 +61,11 @@ class phylome_tree(object):
         if any(sp in self.root_dict for sp in self.tree.get_species()):
             ogdval = max([self.root_dict.get(sp, 0) for sp in self.tree.get_species()])
             ogsps = [k for k, val in self.root_dict.items() if val == ogdval][0]
-            self.ogsp = [seq for seq in self.tree.get_leaf_names() if ogsps in seq][0]
+            self.ogseq = [seq for seq in self.tree.get_leaf_names() if ogsps in seq][0]
         else:
-            self.ogsp = self.tree.get_farthest_leaf()[0].get_leaf_names()[0]
+            self.ogseq = self.tree.get_farthest_leaf()[0].get_leaf_names()[0]
 
-        self.tree.set_outgroup(self.ogsp)
+        self.tree.set_outgroup(self.ogseq)
 
     def get_refpars(self):
         mphsptrees = dict()
