@@ -58,9 +58,14 @@ class phylome_tree(object):
         Root the tree according to an outgroup
         '''
 
-        og = self.tree.get_farthest_oldest_leaf(self.root_dict)
-        self.ogseq = og.get_leaf_names()[0]
-        self.tree.set_outgroup(og)
+        if any(sp in self.root_dict for sp in self.tree.get_species()):
+            og = self.tree.get_farthest_oldest_leaf(self.root_dict)
+            self.ogseq = og.get_leaf_names()[0]
+            self.tree.set_outgroup(og)
+        else:
+            og = self.tree.get_farthest_leaf()[0]
+            self.ogseq = og.get_leaf_names()[0]
+            self.tree.set_outgroup(og)
 
     def get_refpars(self):
         mphsptrees = dict()
