@@ -19,7 +19,8 @@ from os.path import isfile
 from os import stat
 from thread import thread
 import time
-import ftplib
+# import ftplib
+from rooted_phylomes import ROOTED_PHYLOMES
 
 # Script options definition ----
 parser = OptionParser()
@@ -76,12 +77,13 @@ def main():
         ifile = '../data/phylome_list.txt'
         pdbids = open(ifile)
     elif options.all:
-        pdbftp = ftplib.FTP('phylomedb.org')
-        pdbftp.login()
-        pdbftp.cwd('phylomedb/phylomes/')
-        files = pdbftp.nlst()
-
-        pdbids = [item.replace('phylome_', '') for item in files]
+        # pdbftp = ftplib.FTP('phylomedb.org')
+        # pdbftp.login()
+        # pdbftp.cwd('phylomedb/phylomes/')
+        # files = pdbftp.nlst()
+        # pdbids = [item.replace('phylome_', '') for item in files]
+        
+        pdbids = list(ROOTED_PHYLOMES.keys())
         threads = 4
         workdir = '../outputs'
     else:
