@@ -151,6 +151,7 @@ def main():
                 tasks.append(prot_thread)
 
     for task in tasks:
+        # Finish remaining tasks
         task.join()
         task.show()
 
