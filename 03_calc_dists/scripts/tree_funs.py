@@ -147,7 +147,7 @@ class phylome_tree(object):
             self.write_ofiles()
         else:
             print(str('Tree cannot be parsed, seed or more than one sequences ',
-                      'equally named.')))
+                      'equally named.'))
 
 
 # def main():
