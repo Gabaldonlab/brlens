@@ -63,10 +63,13 @@ class thread(threading.Thread):
 
         dist_file = open('/'.join([self.workdir,
                                    (self.phylome_id + '_dist.tsv')]), 'w')
-        dist_file.write('phylome_id\tseed\tprot_id\tdist_seq\tog_dist\tseed_dist\tog_ndist\tseed_ndist\n')
+        dist_file.write(('phylome_id\tseed\tprot_id\tdist_seq\tog_dist' +
+                         '\tseed_dist\tog_ndist\tseed_ndist\tseed_sps' +
+                         '\tseed_dupls\tog_sps\tog_dupls\n'))
         gene_sum = open('/'.join([self.workdir,
                                   (self.phylome_id + '_sum.tsv')]), 'w')
-        gene_sum.write('phylome_id\tprot\twidth\tmean\tmedian\tskew\tkurt\tsd\n')
+        gene_sum.write(('phylome_id\tprot\twidth\tmean\tmedian\tskew' +
+                        '\tkurt\tsd\n'))
         for tree in open(self.ifile):
             tree = tree.split('\t')
             tree1 = phylome_tree(self.phylome_id, tree[0], tree[1], tree[2],

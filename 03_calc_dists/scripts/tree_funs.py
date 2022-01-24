@@ -102,6 +102,26 @@ class phylome_tree(object):
                        self.rwdth, self.rmean, self.rmed, self.rskew,
                        self.rkurt, self.sd]
 
+    def get_events(self, seqfrom, leaf):
+        events = dict()
+        events['S'] = 0
+        events['D'] = 0
+        self.tree.get_descendant_evol_events()
+        ltstr = self.tree.get_common_ancestor(seqfrom, leaf)
+        ltstreeln = ltstr.get_leaf_names()
+
+        for node in ltstr.get_leaves_by_name(seqfrom)[0].get_ancestors():
+            nln = node.get_leaf_names()
+            if len(nln) <= len(ltstreeln):
+                events[node.evoltype] += 1
+        for node in ltstr.get_leaves_by_name(leaf)[0].get_ancestors():
+            nln = node.get_leaf_names()
+            if len(nln) <= len(ltstreeln):
+                events[node.evoltype] += 1
+        events[ltstr.evoltype] -= 1
+
+        return events
+
     def get_dists(self, seqsl):
         '''
         Calculate the distances between the
@@ -110,11 +130,13 @@ class phylome_tree(object):
         for seq in self.seqsl:
             if seq != self.seed_id:
                 seed_dist = self.tree.get_distance(seq, self.seed_id)
+                seed_events = self.get_events(self.seed_id, seq)
             else:
                 seed_dist = 'NA'
 
             if seq != self.ogseq:
                 og_dist = self.tree.get_distance(seq, self.ogseq)
+                og_events = self.get_events(seq, self.ogseq)
             else:
                 og_dist = 'NA'
 
@@ -122,7 +144,8 @@ class phylome_tree(object):
                 seqdistl = [self.phylome_id, self.seed_id,
                             self.prot_dict.get(self.seed_id, 'NA'), seq,
                             og_dist, seed_dist, og_dist / self.rmed,
-                            seed_dist / self.rmed]
+                            seed_dist / self.rmed, seed_events['S'],
+                            seed_events['D'], og_events['D'], og_events['S']]
                 distl.append(seqdistl)
 
         self.distl = distl
