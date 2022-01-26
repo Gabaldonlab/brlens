@@ -42,16 +42,15 @@ parser.add_option('-t', '--threads', dest='threads',
 
 
 # Definitions ----
-def yet_calculated(dir, name):
+def yet_calculated(name):
     '''
     Check the existence and size of the file, returns True or False
     '''
-    fp = '/'.join([dir, name])
 
     # Check file existence
-    if os.path.isfile(fp):
+    if os.path.isfile(name):
         # Check the file is not empty
-        if os.stat(fp).st_size != 0:
+        if os.stat(name).st_size != 0:
             return True
     else:
         return False
@@ -71,32 +70,49 @@ def main():
 
     tasks = list()
 
+    create_folder(workdir)
+
     for i, file in enumerate(files):
         phylome_id = file.rsplit('/', 1)[1].split('_', 1)[0]
-        distfilenm = phylome_id + '_dist.tsv'
+        distfile = open(workdir + '/' + phylome_id + '_dist.tsv', 'w')
+        sumfile = open(workdir + '/' + phylome_id + '_sum.tsv', 'w')
 
-        if file != '':
-            if (len(tasks) >= threads):
-                # Wait for a process to finish
-                done = False
-                while not done:
-                    for task in tasks:
-                        if not task.is_alive():
-                            # With these conditions the thread is ended, print
-                            # and free a slot
-                            task.show()
-                            tasks.remove(task)
-                            done = True
+        prot_dict = csv_to_dict(protfiles[i], sep='\t')
 
-            if not yet_calculated(workdir, distfilenm):
-                tree_thread = thread(file, workdir, protfiles[i])
-                tree_thread.show()
-                tree_thread.start()
-                tasks.append(tree_thread)
+        if not yet_calculated(distfile.name):
+            distfile.write('phylome_id\tseed\tprot_id\tdist_seq\tog_dist' +
+                           '\tseed_dist\tog_ndist\tseed_ndist\tseed_sps' +
+                           '\tseed_dupls\tog_sps\tog_dupls\n')
+            sumfile.write('phylome_id\tprot\twidth\tmean\tmedian\tskew' +
+                          '\tkurt\tsd\n')
 
-    for task in tasks:
-        task.join()
-        task.show()
+            for tree in open(file).read().split('\n'):
+                tree = tree.split('\t')
+                if file != '':
+                    if (len(tasks) >= threads):
+                        # Wait for a process to finish
+                        done = False
+                        while not done:
+                            for task in tasks:
+                                if not task.is_alive():
+                                    # With these conditions the thread is ended,
+                                    # print and free a slot
+                                    # task.show()
+                                    tasks.remove(task)
+                                    done = True
+
+                    tree_thread = thread(tree, workdir, prot_dict,
+                                         phylome_id, distfile, sumfile)
+                    # tree_thread.show()
+                    tree_thread.start()
+                    tasks.append(tree_thread)
+
+                for task in tasks:
+                    task.join()
+                    task.show()
+
+            distfile.close()
+            sumfile.close()
 
 
 if __name__ == '__main__':
