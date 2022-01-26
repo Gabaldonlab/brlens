@@ -42,15 +42,16 @@ parser.add_option('-t', '--threads', dest='threads',
 
 
 # Definitions ----
-def yet_calculated(name):
+def yet_calculated(workdir, name):
     '''
     Check the existence and size of the file, returns True or False
     '''
 
+    fp = '/'.joint([workdir, name])
     # Check file existence
-    if os.path.isfile(name):
+    if os.path.isfile(fp):
         # Check the file is not empty
-        if os.stat(name).st_size != 0:
+        if os.stat(nafpme).st_size != 0:
             return True
     else:
         return False
@@ -66,7 +67,7 @@ def main():
         files = glob.glob(options.ifolder + '*_best_trees.txt')
         protfiles = glob.glob(options.ifolder + '*_all_protein_names.txt')
         workdir = options.workdir
-        threads = options.threads
+        threads = int(options.threads)
 
     tasks = list()
 
@@ -79,7 +80,7 @@ def main():
 
         prot_dict = csv_to_dict(protfiles[i], sep='\t')
 
-        if not yet_calculated(distfile.name):
+        if not yet_calculated(workdir, distfile.name):
             distfile.write('phylome_id\tseed\tprot_id\tdist_seq\tog_dist' +
                            '\tseed_dist\tog_ndist\tseed_ndist\tseed_sps' +
                            '\tseed_dupls\tog_sps\tog_dupls\n')

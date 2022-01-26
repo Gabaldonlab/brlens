@@ -5,3 +5,5 @@ __pycache__/
 .ipynb_checkpoints/
 nohup*
 .Rhistory
+03_calc_dists_v1/
+03_calc_dists_v2/
