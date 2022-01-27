@@ -19,7 +19,7 @@ from optparse import OptionParser
 from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
 import pandas as pd
-from multiprocessing import Process, cpu_count
+from multiprocessing import Process, Manager
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -121,8 +121,8 @@ class dist_process(Process):
 
         if (len(t.get_species()) > 10 and
                 len(t.get_leaf_names()) < 3 * len(t.get_species())):
-            # print('Calculating: %s, species no.: %s, leaves no.: %s' %
-            #       (tree[0], len(t.get_species()), len(t.get_leaf_names())))
+            print('Calculating: %s, species no.: %s, leaves no.: %s' %
+                  (tree[0], len(t.get_species()), len(t.get_leaf_names())))
             og = root(t, root_dict[int(self.phylome_id)])
 
             for leaf in t.get_leaf_names():
@@ -168,35 +168,38 @@ def main():
     dist_fn = '/'.join([odir, (phylome_id + '_dist.tsv')])
 
     if not file_exists(dist_fn):
-        # print('Creating: ', dist_fn)
+        print('Creating: ', dist_fn)
 
         create_folder(odir)
 
         trees = open(ifile, 'r').read().split('\n')
         prot_dict = csv_to_dict(prots, '\t')
 
-        olist = list()
+        with Manager() as manager:
+            olist = manager.list()
 
-        processes = list()
-        for tree_row in trees:
-            if tree_row != '':
-                if len(processes) >= cpus:
-                    done = False
-                    while not done:
-                        for process in processes:
-                            if not process.is_alive():
-                                processes.remove(process)
-                                done = True
+            processes = list()
+            for tree_row in trees:
+                if tree_row != '':
+                    if len(processes) >= cpus:
+                        done = False
+                        while not done:
+                            for process in processes:
+                                if not process.is_alive():
+                                    processes.remove(process)
+                                    done = True
 
-                process = dist_process(tree_row, phylome_id, prot_dict, olist)
-                processes.append(process)
-                process.start()
+                    process = dist_process(tree_row, phylome_id,
+                                           prot_dict, olist)
+                    processes.append(process)
+                    process.start()
 
-        odf = pd.DataFrame(olist)
+            for process in processes:
+                process.join()
 
-        ofile = open(dist_fn, 'w')
-        ofile.write(odf.to_csv(index=False))
-        ofile.close()
+            odf = pd.DataFrame(list(olist))
+            odf.to_csv(dist_fn, index=False)
+
 
 if __name__ == '__main__':
-        main()
+    main()
