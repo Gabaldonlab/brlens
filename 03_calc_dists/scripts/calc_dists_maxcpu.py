@@ -18,8 +18,8 @@ import os
 from optparse import OptionParser
 from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
-from threading import Thread
 import pandas as pd
+from multiprocessing import Process, cpu_count
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -27,22 +27,6 @@ projdir = filedir.rsplit('/', 3)[0]
 sys.path.append(projdir)
 
 from utils import *
-
-# Script options definition ----
-# parser = OptionParser()
-# parser.add_option('-d', '--def', dest='default',
-#                   help='Default configurations to execute with our data.',
-#                   action='store_true')
-# parser.add_option('-f', '--file', dest='ifile',
-#                   help='In file',
-#                   metavar='<path/to/file.txt>')
-# parser.add_option('-o', '--output', dest='odir',
-#                   help='Output directory',
-#                   metavar='<path/to/output>')
-# parser.add_option('-p', '--prot', dest='prot',
-#                   help='File with protein codes',
-#                   metavar='<path/to/file.txt>')
-# (options, args) = parser.parse_args()
 
 
 # Definitions ----
@@ -123,9 +107,9 @@ def get_dists(tree, leaf, seed_id, ogseq, phylome_id, prot_dict):
         return None
 
 
-class dist_thread(Thread):
+class dist_process(Process):
     def __init__(self, tree_row, phylome_id, prot_dict, olist):
-        Thread.__init__(self)
+        Process.__init__(self)
         self.tree_row = tree_row
         self.phylome_id = phylome_id
         self.prot_dict = prot_dict
@@ -137,8 +121,8 @@ class dist_thread(Thread):
 
         if (len(t.get_species()) > 10 and
                 len(t.get_leaf_names()) < 3 * len(t.get_species())):
-            print('Calculating: %s, species no.: %s, leaves no.: %s' %
-                  (tree[0], len(t.get_species()), len(t.get_leaf_names())))
+            # print('Calculating: %s, species no.: %s, leaves no.: %s' %
+            #       (tree[0], len(t.get_species()), len(t.get_leaf_names())))
             og = root(t, root_dict[int(self.phylome_id)])
 
             for leaf in t.get_leaf_names():
@@ -149,29 +133,42 @@ class dist_thread(Thread):
 
 
 def main():
-    # if options.default:
-    #     ifile = '03_calc_dists_0/data/0469_best_trees.txt'
-    #     prots = '03_calc_dists_0/data/0469_all_protein_names.txt'
-    #     odir = '03_calc_dists_0/outputs'
-    # else:
-    #     ifile = options.ifile
-    #     odir = options.odir
+    # Script options definition ----
+    parser = OptionParser()
+    parser.add_option('-d', '--def', dest='default',
+                      help='Default configurations to execute with our data.',
+                      action='store_true')
+    parser.add_option('-f', '--file', dest='ifile',
+                      help='In file',
+                      metavar='<path/to/file.txt>')
+    parser.add_option('-o', '--output', dest='odir',
+                      help='Output directory',
+                      metavar='<path/to/output>')
+    parser.add_option('-p', '--prot', dest='prot',
+                      help='File with protein codes',
+                      metavar='<path/to/file.txt>')
+    parser.add_option('-c', '--cpu', dest='cpus',
+                      help='File with protein codes',
+                      metavar='<path/to/file.txt>')
+    (options, args) = parser.parse_args()
 
-    ifile = '../data/0469_best_trees.txt'
-    prots = '../data/0469_all_protein_names.txt'
-    odir = '../outputs'
-    thr_no = 4
-
-    # ifile = '03_calc_dists_0/data/0469_best_trees.txt'
-    # prots = '03_calc_dists_0/data/0469_all_protein_names.txt'
-    # odir = '03_calc_dists_0/outputs'
+    if options.default:
+        ifile = '../data/0469_best_trees.txt'
+        prots = '../data/0469_all_protein_names.txt'
+        odir = '../outputs'
+        cpus = 4
+    else:
+        ifile = options.ifile
+        odir = options.odir
+        prots = options.prot
+        cpus = int(options.cpus)
 
     phylome_id = ifile.rsplit('/', 1)[1].split('_', 1)[0]
 
     dist_fn = '/'.join([odir, (phylome_id + '_dist.tsv')])
 
     if not file_exists(dist_fn):
-        print('Creating: ', dist_fn)
+        # print('Creating: ', dist_fn)
 
         create_folder(odir)
 
@@ -180,23 +177,20 @@ def main():
 
         olist = list()
 
-        threads = list()
+        processes = list()
         for tree_row in trees:
             if tree_row != '':
-                if (len(threads) >= thr_no):
+                if len(processes) >= cpus:
                     done = False
                     while not done:
-                        for thread in threads:
-                            if not thread.is_alive():
-                                threads.remove(thread)
+                        for process in processes:
+                            if not process.is_alive():
+                                processes.remove(process)
                                 done = True
 
-                thread = dist_thread(tree_row, phylome_id, prot_dict, olist)
-                threads.append(thread)
-                thread.start()
-
-        for thread in threads:
-            thread.join()
+                process = dist_process(tree_row, phylome_id, prot_dict, olist)
+                processes.append(process)
+                process.start()
 
         odf = pd.DataFrame(olist)
 
@@ -204,6 +198,5 @@ def main():
         ofile.write(odf.to_csv(index=False))
         ofile.close()
 
-
 if __name__ == '__main__':
-    main()
+        main()
