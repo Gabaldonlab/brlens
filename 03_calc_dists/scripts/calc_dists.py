@@ -169,7 +169,7 @@ def main():
 
     phylome_id = ifile.rsplit('/', 1)[1].split('_', 1)[0]
 
-    dist_fn = '/'.join([odir, (phylome_id + '_dist.tsv')])
+    dist_fn = '/'.join([odir, (phylome_id + '_dist.csv')])
 
     if not file_exists(dist_fn):
         print('Creating: ', dist_fn)
