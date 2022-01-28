@@ -2,13 +2,17 @@
 # -*- coding: utf-8 -*-
 
 '''
-00_script.py -- Title of the script
+calc_dists.py -- Phylome distances calculations
 
-Brief description
+The program gets the phylome and calculate the distances between
+the tree seed to each leaf and the tree outgroup to each leaf.
+It also gets the speciation and duplication events at the lineage
+branches of the species between each pair of sequences. It
+returns a csv table with all calculations.
 
-Requirements:
+Requirements: ETE3, pandas, multiprocessing
 
-Written by Name <mail@mail.com>
+Written by Moisès Bernabeu moigil.bernabeu@gmail.com
 Month 2022
 '''
 
