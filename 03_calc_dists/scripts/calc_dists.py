@@ -41,7 +41,26 @@ def get_species_tag(node):
 def root(tree, root_dict):
     '''
     Root the tree according to an outgroup
+
+    The tree is rooted with a dictionary containing species-to-age information,
+    the farthest sequence from an species in the tree which has maximum age is
+    selected to be the outgroup of the tree.
+
+    Args:
+        tree (PhyloTree): ete3 PhyloTree object with a get_species_tag function
+        root_dict (dictionary): a dictionary containing the species age,
+        indexes refers to the phylome.
+        Eg.: 3: {'SP1': 1, 'SP2': 2}
+        Where 3 is the phylome number and the SP2 is older than SP1.
+
+    Returns:
+        string: the outgroup sequence and the tree object is rooted without
+        being returned.
+
+    Raises:
+        Exception: description
     '''
+
 
     if any(sp in root_dict for sp in tree.get_species()):
         ogdval = max([root_dict.get(sp, 0) for sp in tree.get_species()])
@@ -56,6 +75,26 @@ def root(tree, root_dict):
 
 
 def get_events(tree, leaf, seqfrom):
+    '''
+    Analyse the speciation and duplication events
+
+    The function goes through the lineage branches and gets the number of
+    speciation and duplication events between both sequences (leaf and
+    seqfrom).
+
+    Args:
+        tree (PhyloTree): ete3 PhyloTree object with a get_species_tag function
+        leaf (str): sequence name of the leaf.
+        seqfrom (str): name of the reference sequence.
+
+    Returns:
+        dict: dictionary containing the number events of speciation ('S') and
+        duplication ('D') events.
+
+    Raises:
+        Exception: description
+    '''
+
     events = dict()
     events['S'] = 0
     events['D'] = 0
