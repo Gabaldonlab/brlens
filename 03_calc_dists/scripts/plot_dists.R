@@ -13,7 +13,8 @@
 library(e1071)
 library(ggplot2)
 library(GGally)
-library(ggpubr)
+# library(ggpubr)
+library(patchwork)
 
 # Settings ----
 theme_set(theme_bw())
@@ -74,7 +75,11 @@ for (file in files) {
   # Joining the plots
   pdf(paste0('../outputs/', phylome, '_sp_dp_hist.pdf'),
       width = 7, height = 4.5)
-  print(ggarrange(slsp, sldp, olsp, oldp, ncol = 2, nrow = 2, align = 'hv'))
+  print((slsp + sldp) / (olsp + oldp))
+  # print(slsp)
+  # print(sldp)
+  # print(olsp)
+  # print(oldp)
   dev.off()
   
   # Density of numeric variables ----
@@ -87,7 +92,9 @@ for (file in files) {
     xlab('Outgroup to leaf distance')
   
   pdf(paste0('../outputs/', phylome, '_dens.pdf'), width = 7, height = 2.25)
-  print(ggarrange(sd, od, align = 'h'))
+  print(sd + od)
+  # print(sd)
+  # print(od)
   dev.off()
   
   # pdf(paste0('../outputs/', phylome, '_pairs.pdf'), width = 12, height = 12)
