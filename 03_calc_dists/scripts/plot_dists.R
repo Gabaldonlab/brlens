@@ -20,7 +20,7 @@ library(patchwork)
 theme_set(theme_bw())
 
 # Loading data ----
-files <- list.files('../outputs', pattern = '.csv', full.names = TRUE)
+files <- list.files('../outputs', pattern = 'all', full.names = TRUE)
 
 # Functions definition ----
 sumstats <- function(x) {
@@ -85,11 +85,13 @@ for (file in files) {
   # Density of numeric variables ----
   sd <- ggplot(dat, aes(seed_dist)) +
     geom_density(col = 'black', fill = 'black', alpha = 0.4) +
-    xlab('Seed to leaf distance')
+    xlab('Seed to leaf distance') +
+    xlim(0, 30)
   
   od <- ggplot(dat, aes(og_dist)) +
     geom_density(col = 'black', fill = 'black', alpha = 0.4) +
-    xlab('Outgroup to leaf distance')
+    xlab('Outgroup to leaf distance') +
+    xlim(0, 30)
   
   pdf(paste0('../outputs/', phylome, '_dens.pdf'), width = 7, height = 2.25)
   print(sd + od)
