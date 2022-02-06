@@ -136,8 +136,8 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
         leafdistd['to'] = to_seq
         leafdistd['to_sp'] = get_species_tag(to_seq)
         leafdistd['dist'] = dist
-        leafdistd['seed_sp'] = events['S']
-        leafdistd['seed_dupl'] = events['D']
+        leafdistd['sp'] = events['S']
+        leafdistd['dupl'] = events['D']
 
         return leafdistd
     else:
