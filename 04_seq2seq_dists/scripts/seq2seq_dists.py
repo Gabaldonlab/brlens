@@ -192,8 +192,8 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.default:
-        ifile = '../data/0435_best_trees.txt'
-        prots = '../data/0435_all_protein_names.txt'
+        ifile = '../data/0003_best_trees.txt'
+        prots = '../data/0003_all_protein_names.txt'
         odir = '../outputs'
         cpus = 4
     else:
