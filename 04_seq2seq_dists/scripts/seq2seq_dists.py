@@ -61,7 +61,6 @@ def root(tree, root_dict):
         Exception: description
     '''
 
-
     if any(sp in root_dict for sp in tree.get_species()):
         ogdval = max([root_dict.get(sp, 0) for sp in tree.get_species()])
         ogsps = [k for k, val in root_dict.items() if val == ogdval and k in tree.get_species()][0]
@@ -98,7 +97,6 @@ def get_events(tree, leaf, seqfrom):
     events = dict()
     events['S'] = 0
     events['D'] = 0
-    tree.get_descendant_evol_events()
     ltstr = tree.get_common_ancestor(seqfrom, leaf)
     ltstreeln = ltstr.get_leaf_names()
 
@@ -120,28 +118,22 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
     Calculate the distances between the
     '''
 
-    if to_seq != from_seq:
-        dist = tree.get_distance(from_seq, to_seq)
-        events = get_events(tree, from_seq, to_seq)
-    else:
-        dist = 'NA'
+    dist = tree.get_distance(from_seq, to_seq)
+    events = get_events(tree, from_seq, to_seq)
 
-    if dist != 'NA':
-        leafdistd = dict()
-        leafdistd['id'] = phylome_id
-        leafdistd['tree'] = seed_id
-        leafdistd['prot'] = prot_dict.get(seed_id, 'NA')
-        leafdistd['from'] = seed_id
-        leafdistd['from_sp'] = get_species_tag(from_seq)
-        leafdistd['to'] = to_seq
-        leafdistd['to_sp'] = get_species_tag(to_seq)
-        leafdistd['dist'] = dist
-        leafdistd['sp'] = events['S']
-        leafdistd['dupl'] = events['D']
+    leafdistd = dict()
+    leafdistd['id'] = phylome_id
+    leafdistd['tree'] = seed_id
+    leafdistd['prot'] = prot_dict.get(seed_id, 'NA')
+    leafdistd['from'] = seed_id
+    leafdistd['from_sp'] = get_species_tag(from_seq)
+    leafdistd['to'] = to_seq
+    leafdistd['to_sp'] = get_species_tag(to_seq)
+    leafdistd['dist'] = dist
+    leafdistd['sp'] = events['S']
+    leafdistd['dupl'] = events['D']
 
-        return leafdistd
-    else:
-        return None
+    return leafdistd
 
 
 class dist_process(Process):
@@ -160,15 +152,18 @@ class dist_process(Process):
                 len(t.get_leaf_names()) < 3 * len(t.get_species())):
             print('Calculating: %s, species no.: %s, leaves no.: %s' %
                   (tree[0], len(t.get_species()), len(t.get_leaf_names())))
-            og = root(t, root_dict[int(self.phylome_id)])
+            root(t, root_dict[int(self.phylome_id)])
+            t.get_descendant_evol_events()
 
             tnames = t.get_leaf_names()
 
             for i, from_sp in enumerate(tnames):
                 for to_sp in tnames[i + 1:]:
-                    leaf_dist = get_dists(t, from_sp, to_sp, tree[0], self.phylome_id, self.prot_dict)
-                    if leaf_dist is not None:
-                        self.olist.append(leaf_dist)
+                    if from_sp != to_sp:
+                        leaf_dist = get_dists(t, from_sp, to_sp, tree[0],
+                                              self.phylome_id, self.prot_dict)
+                        if leaf_dist is not None:
+                            self.olist.append(leaf_dist)
 
 
 def main():
