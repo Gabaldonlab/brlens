@@ -10,7 +10,6 @@ stats <- function(x) {
 
 dat <- read.csv('../data/0003_dist.csv')
 
-
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
 combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
 
