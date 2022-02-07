@@ -7,12 +7,13 @@ stats <- function(x) {
          'kurt' = kurtosis(x, na.rm = TRUE))
   return(y)
 }
-
-dat <- read.csv('../data/0003_dist.csv')
+dat <- read.csv('../data/0435_dist.csv')
 
 
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
 combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
+
+choose(length(dat$from_sp[!duplicated(dat$from_sp)]), 2)
 
 for (i in 1:dim(sps)[1]) {
   print(i)
