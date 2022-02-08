@@ -24,6 +24,9 @@ from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
+import numpy as np
+from scipy import stats
+import statistics as st
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -113,7 +116,8 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
+def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
+              prot_dict, refstats):
     '''
     Calculate the distances between the
     '''
@@ -125,15 +129,54 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
     leafdistd['id'] = phylome_id
     leafdistd['tree'] = seed_id
     leafdistd['prot'] = prot_dict.get(seed_id, 'NA')
-    leafdistd['from'] = seed_id
+    leafdistd['from'] = from_seq
     leafdistd['from_sp'] = get_species_tag(from_seq)
     leafdistd['to'] = to_seq
     leafdistd['to_sp'] = get_species_tag(to_seq)
     leafdistd['dist'] = dist
+    leafdistd['dist_norm'] = dist / refstats['rmed']
     leafdistd['sp'] = events['S']
     leafdistd['dupl'] = events['D']
 
     return leafdistd
+
+
+def get_refpars(phylome_id, prot_dict, seed_id, tree):
+    mphsptrees = dict()
+    mphgtrees = dict()
+    for i, subtree in enumerate(tree.traverse()):
+        sps = [sp.split('_')[1] for sp in subtree.get_leaf_names()]
+        if (len(sps) == len(set(sps)) and len(sps) > 10 and
+                subtree.get_farthest_leaf()[1] != 0):
+            mphsptrees[len(sps)] = subtree
+        elif len(sps) > 10 and subtree.get_farthest_leaf()[1] != 0:
+            mphgtrees[len(sps) - len(set(sps))] = subtree
+
+    if len(mphsptrees) > 0:
+        rtree = mphsptrees.get(max(mphsptrees.keys()))
+    elif len(mphgtrees) > 0:
+        rtree = mphgtrees.get(min(mphgtrees.keys()))
+    else:
+        rtree = tree
+
+    root = rtree.get_common_ancestor(rtree)
+    rwdth = rtree.get_farthest_leaf()[1]
+
+    rtldist = list()
+    for leaf in rtree.get_leaf_names():
+        rtldist.append(rtree.get_distance(root, leaf))
+
+    rmean = np.mean(rtldist)
+    rmed = np.median(rtldist)
+    rskew = stats.skew(rtldist)
+    rkurt = stats.kurtosis(rtldist)
+    sd = st.stdev(rtldist)
+
+    rstats = {'id': phylome_id, 'prot': prot_dict.get(seed_id, 'NA'),
+              'rwdth': rwdth, 'rmean': rmean, 'rmed': rmed, 'rskew': rskew,
+              'rkurt': rkurt, 'sd': sd}
+
+    return rstats
 
 
 class dist_process(Process):
@@ -155,13 +198,15 @@ class dist_process(Process):
             root(t, root_dict[int(self.phylome_id)])
             t.get_descendant_evol_events()
 
+            refstats = get_refpars(self.phylome_id, self.prot_dict, tree[0], t)
             tnames = t.get_leaf_names()
 
             for i, from_sp in enumerate(tnames):
                 for to_sp in tnames[i + 1:]:
                     if from_sp != to_sp:
                         leaf_dist = get_dists(t, from_sp, to_sp, tree[0],
-                                              self.phylome_id, self.prot_dict)
+                                              self.phylome_id, self.prot_dict,
+                                              refstats)
                         if leaf_dist is not None:
                             self.olist.append(leaf_dist)
 
@@ -187,10 +232,10 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.default:
-        ifile = '../data/0003_best_trees.txt'
-        prots = '../data/0003_all_protein_names.txt'
+        ifile = '../data/0435_best_trees.txt'
+        prots = '../data/0435_all_protein_names.txt'
         odir = '../outputs'
-        cpus = 4
+        cpus = 6
     else:
         ifile = options.ifile
         odir = options.odir

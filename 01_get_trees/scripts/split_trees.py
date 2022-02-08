@@ -6,7 +6,7 @@ if not os.path.exists('splitted'):
     os.mkdir('splitted')
 
 files = glob('outputs/*_best_trees.txt.gz')
-    
+
 for file in files:
     print(file)
     ph_id = file.rsplit('/', 1)[1].split('_', 1)[0]
