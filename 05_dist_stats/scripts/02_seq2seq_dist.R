@@ -23,6 +23,8 @@ for (file in phy_files) {
   }
 }
 
+write.csv(dat, '../outputs/0005_dists.csv')
+
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
 combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
 
@@ -86,6 +88,8 @@ for (i in 1:dim(sps)[1]) {
 
 stats_df <- data.frame(a[, , 1:4])
 stats_df <- na.omit(stats_df)
+
+write.csv(stats_df, file = '../outputs/0005_stats.csv')
 
 str(stats_df)
 

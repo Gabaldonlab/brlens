@@ -1,0 +1,120 @@
+---
+title: Report 01 - Exploratory analysis of distance and its implication in duplication
+  and speciation events
+author: "Moisès Bernabeu & Toni Gabaldón"
+date: "02/09/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, fig.align = 'center',
+                      out.width = '90%', fig.width = 5, fig.height = 3,
+                      warning = FALSE)
+
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+theme_set(theme_bw())
+```
+
+# Retrieved data
+
+```{r}
+dat <- read.csv('../05_dist_stats/outputs/0005_dists.csv')[, -1]
+head(dat[, 1:5])
+head(dat[, 5:11])
+```
+
+## Relationships between raw numerical variables
+
+```{r, fig.width=9, fig.height=6, out.width='70%'}
+plot(dat[sample(which(dat$dist > 0 & dat$dist_norm < 20), 10000), 8:11],
+     pch = 20)
+```
+
+## Summarizing data
+We retrieve basic descriptive statistics below for each pair of species sets:
+```
+Min. 1st Qu. Median Mean 3rd Qu. Max. skew kurt sum
+```
+
+Also we get the basic representations of each sp to sp comparisons:
+
+```{r, fig.width = 10, fig.height = 5}
+sdat <- dat[which(dat$from_sp == 'DEBHA' & dat$to_sp == 'SACBA'), ]
+combs <- 'DEBHA - SACBA'
+pa <- ggplot(sdat, aes(dist)) +
+  geom_density() +
+  xlab('Distance') +
+  labs(title = combs)
+
+pb <- ggplot(sdat, aes(sp)) +
+  geom_histogram() +
+  xlab('Speciation events') +
+  labs(title = combs)
+
+pc <- ggplot(sdat, aes(dupl)) +
+  geom_histogram() +
+  xlab('Duplication events') +
+  labs(title = combs)
+
+pd <- ggplot(sdat, aes(dist, factor(dupl))) +
+  geom_violin(draw_quantiles = c(0.5)) +
+  xlab('Distance') +
+  ylab('Duplications') +
+  labs(title = combs)
+
+pe <- ggplot(sdat, aes(dist, factor(sp))) +
+  geom_violin(stat = 'ydensity', draw_quantiles = c(0.5)) +
+  xlab('Distance') +
+  ylab('Speciations') +
+  labs(title = combs)
+
+pf <- ggplot(sdat, aes(dist, dupl / sp)) +
+  geom_point() +
+  xlab('Distance') +
+  ylab('Duplications / speciations') +
+  labs(title = combs)
+
+ggarrange(pa, pb, pc, pd, pe, pf, align = 'hv')
+```
+
+
+```{r}
+sdat <- read.csv('../05_dist_stats/outputs/0005_stats.csv')
+
+sdat_med <- sdat[, grep('Median', names(sdat))]
+head(sdat_med)
+sdat_mea <- sdat[, grep('Mean', names(sdat))]
+head(sdat_mea)
+sdat_skew <- sdat[, grep('skew', names(sdat))]
+head(sdat_skew)
+```
+
+```{r, fig.width=12, fig.height=4}
+stat_med_g <- gather(sdat_med, key = 'key', value = 'value')
+stat_mea_g <- gather(sdat_mea, key = 'key', value = 'value')
+stat_g <- rbind(stat_med_g, stat_mea_g)
+ggplot(stat_g, aes(value, fill = key, color = key)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  facet_wrap(~key, ncol = 4)
+```
+
+```{r, fig.width=12, fig.height=2.5}
+stat_skew_g <- gather(sdat_skew, key = 'key', value = 'value')
+ggplot(stat_skew_g, aes(value, fill = key, color = key)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  facet_wrap(~key, ncol = 4)
+```
+
+
+```{r, fig.width=10, fig.height=7}
+plot(sdat_med, pch = 20)
+plot(sdat_mea, pch = 20)
+```
+
+```{r, out.width='55%'}
+ggplot(sdat_mea, aes(Mean.dist, Mean.dupl / Mean.sp)) +
+  geom_point()
+```
+
