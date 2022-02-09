@@ -1,4 +1,7 @@
 library(e1071)
+library(Hmisc)
+library(corrplot)
+
 library(ggplot2)
 library(ggpubr)
 theme_set(theme_bw())
@@ -8,8 +11,17 @@ stats <- function(x) {
          'kurt' = kurtosis(x, na.rm = TRUE), 'sum' = sum(x, na.rm = TRUE))
   return(y)
 }
-dat <- read.csv('../data/0435_dist.csv')
 
+phy_files <- list.files(path = '../data/', pattern = '0005', full.names = TRUE)
+
+remove(dat)
+for (file in phy_files) {
+  if (!exists('dat')) {
+    dat <- read.csv(file)
+  } else {
+    dat <- rbind(dat, read.csv(file))
+  }
+}
 
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
 combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
@@ -17,6 +29,7 @@ combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
 choose(length(dat$from_sp[!duplicated(dat$from_sp)]), 2)
 
 remove(a)
+
 # pdf('~/Documents/pairs_descr.pdf', width = 10, height = 5)
 for (i in 1:dim(sps)[1]) {
   print(i)
@@ -125,5 +138,24 @@ ggplot(stats_df, aes(Median.dist, Median.dupl)) +
 ggplot(stats_df, aes(Median.dist_norm, sum.dupl / sum.sp)) +
   geom_point() +
   xlab('Distance') +
-  ylab('Duplications / speciations') +
-  labs(title = combs[i])
+  ylab('Duplications / speciations')
+
+plot(dat[sample(which(dat$dist > 0 & dat$dist_norm < 20), 4000), 8:11],
+     pch = 20)
+
+dat_cor <- rcorr(as.matrix(dat[which(dat$dist > 0 & dat$dist_norm < 20), 8:11]))
+corrplot(dat_cor$r, method = 'ellipse', type = 'lower', p.mat = dat_cor$P,
+         sig.level = 0.05)
+corrplot(add = TRUE, dat_cor$r, type = 'upper', method = 'number', tl.pos = 't')
+
+stats_df <- data.frame(a[, , 1:4])
+dist_df <- data.frame(sps, stats_df$Mean.dist)
+spset <- dat$from_sp[!duplicated(dat$from_sp)]
+
+b <- matrix(NA, nrow = length(spset), ncol = length(spset), dimnames = list(spset, spset))
+for (i in 1:dim(dist_df)[1]) {
+  b[dist_df[i, 1], dist_df[i, 2]] <- dist_df[i, 3]
+  b[dist_df[i, 2], dist_df[i, 1]] <- dist_df[i, 3]
+}
+
+heatmap(b[-39, -39], na.rm = TRUE)
