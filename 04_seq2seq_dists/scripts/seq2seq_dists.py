@@ -112,6 +112,7 @@ def get_events(tree, leaf, seqfrom):
         if len(nln) <= len(ltstreeln):
             events[node.evoltype] += 1
     events[ltstr.evoltype] -= 1
+    events['MRCA'] = ltstr.evoltype
 
     return events
 
@@ -137,6 +138,7 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
     leafdistd['dist_norm'] = dist / refstats['rmed']
     leafdistd['sp'] = events['S']
     leafdistd['dupl'] = events['D']
+    leafdistd['mrca_type'] = events['MRCA']
 
     return leafdistd
 

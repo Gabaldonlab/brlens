@@ -7,23 +7,19 @@ library(ggpubr)
 theme_set(theme_bw())
 
 stats <- function(x) {
+  if (length(x) > 5000) {
+    shap <- shapiro.test(sample(x, 5000))
+  } else {
+    shap <- shapiro.test(x)
+  }
   y <- c(summary(x, na.rm = TRUE), 'skew' = skewness(x, na.rm = TRUE),
-         'kurt' = kurtosis(x, na.rm = TRUE), 'sum' = sum(x, na.rm = TRUE))
+         'kurt' = kurtosis(x, na.rm = TRUE), 'sum' = sum(x, na.rm = TRUE),
+         'shap.p' = shap$p.value)
   return(y)
 }
 
-phy_files <- list.files(path = '../data/', pattern = '0005', full.names = TRUE)
-
-remove(dat)
-for (file in phy_files) {
-  if (!exists('dat')) {
-    dat <- read.csv(file)
-  } else {
-    dat <- rbind(dat, read.csv(file))
-  }
-}
-
-write.csv(dat, '../outputs/0005_dists.csv')
+dat <- read.csv('../data/0005_dists_noh.csv')
+dat <- na.omit(dat)
 
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
 combs <- apply(sps[, 1:2], 1, paste, collapse = ' - ')
@@ -36,7 +32,8 @@ remove(a)
 for (i in 1:dim(sps)[1]) {
   print(i)
   if (sum(dat$from_sp == sps[i, 1] & dat$to_sp == sps[i, 2]) > 0) {
-    sdat <- dat[which(dat$from_sp == sps[i, 1] & dat$to_sp == sps[i, 2]), ]
+    sdat <- dat[which(dat$from_sp == sps[i, 1] & dat$to_sp == sps[i, 2] &
+                        dat$mrca_type == 'S'), ]
     sdat_stats <- apply(sdat[, 8:11], 2, stats)
     if (!exists('a')) {
       a <- array(dim = c(dim(sps)[1], dim(sdat_stats)[1], 4),
@@ -89,7 +86,7 @@ for (i in 1:dim(sps)[1]) {
 stats_df <- data.frame(a[, , 1:4])
 stats_df <- na.omit(stats_df)
 
-write.csv(stats_df, file = '../outputs/0005_stats.csv')
+write.csv(stats_df, file = '../05_dist_stats/outputs/0076_stats.csv')
 
 str(stats_df)
 
@@ -153,13 +150,26 @@ corrplot(dat_cor$r, method = 'ellipse', type = 'lower', p.mat = dat_cor$P,
 corrplot(add = TRUE, dat_cor$r, type = 'upper', method = 'number', tl.pos = 't')
 
 stats_df <- data.frame(a[, , 1:4])
-dist_df <- data.frame(sps, stats_df$Mean.dist)
+dist_df <- data.frame(sps, stats_df$Median.dist)
 spset <- dat$from_sp[!duplicated(dat$from_sp)]
 
-b <- matrix(NA, nrow = length(spset), ncol = length(spset), dimnames = list(spset, spset))
+b <- matrix(NA, nrow = length(spset), ncol = length(spset),
+            dimnames = list(spset, spset))
 for (i in 1:dim(dist_df)[1]) {
   b[dist_df[i, 1], dist_df[i, 2]] <- dist_df[i, 3]
   b[dist_df[i, 2], dist_df[i, 1]] <- dist_df[i, 3]
 }
 
-heatmap(b[-39, -39], na.rm = TRUE)
+heatmap(b, na.rm = TRUE)
+
+stats_df <- data.frame(a[, , 1:4])
+dist_df <- data.frame(sps, stats_df$Median.dist_norm)
+
+c <- matrix(NA, nrow = length(spset), ncol = length(spset),
+            dimnames = list(spset, spset))
+for (i in 1:dim(dist_df)[1]) {
+  c[dist_df[i, 1], dist_df[i, 2]] <- dist_df[i, 3]
+  c[dist_df[i, 2], dist_df[i, 1]] <- dist_df[i, 3]
+}
+
+heatmap(c, na.rm = TRUE)
