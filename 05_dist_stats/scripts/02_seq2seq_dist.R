@@ -19,6 +19,7 @@ stats <- function(x) {
 }
 
 dat <- read.csv('../data/0005_dist_noh.csv')
+dat <- dat[which(dat$mrca_type == 'S'), ]
 dat <- na.omit(dat)
 
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
@@ -84,9 +85,10 @@ for (i in 1:dim(sps)[1]) {
 # dev.off()
 
 stats_df <- data.frame(a[, , 1:4])
+stats_df <- cbind(sps, stats_df)
 stats_df <- na.omit(stats_df)
 
-write.csv(stats_df, file = '../outputs/0005_stats.csv')
+write.csv(stats_df, file = '../outputs/0005_stats_mrcasp.csv')
 
 str(stats_df)
 
