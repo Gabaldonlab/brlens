@@ -18,7 +18,7 @@ stats <- function(x) {
   return(y)
 }
 
-dat <- read.csv('../data/0005_dists_noh.csv')
+dat <- read.csv('../data/0005_dist_noh.csv')
 dat <- na.omit(dat)
 
 sps <- t(combn(dat$from_sp[!duplicated(dat$from_sp)], 2))
@@ -86,7 +86,7 @@ for (i in 1:dim(sps)[1]) {
 stats_df <- data.frame(a[, , 1:4])
 stats_df <- na.omit(stats_df)
 
-write.csv(stats_df, file = '../05_dist_stats/outputs/0076_stats.csv')
+write.csv(stats_df, file = '../outputs/0005_stats.csv')
 
 str(stats_df)
 
