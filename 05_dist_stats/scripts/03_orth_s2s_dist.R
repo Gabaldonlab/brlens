@@ -63,8 +63,9 @@ prots <- spdat$prot[which(spdat$to_sp %in% c('CANAL', 'CANTR', 'CANDU',
                                              'CLALS', 'DEBHA', 'LODEL',
                                              'PICGU', 'PICST') &
                             spdat$dist < 1)]
-
-names(which(table(prots) >= 8))
+length(prots)
+length(table(prots))
+length(names(which(table(prots) >= 8)))
 names(which(table(prots) >= 7))
 
 # Human phylome ----
@@ -82,7 +83,7 @@ ndist.dens <- ggplot(spdat, aes(dist_norm, col = to_sp, fill = to_sp)) +
   xlim(0, 1) +
   labs(title = 'HUMAN to sp.')
 
-# pdf('../outputs/0076_dist_dens.pdf', width = 9, height = 4)
+# pdf('../outputs/0076_dist_dens_no_res.pdf', width = 9, height = 4)
 ggarrange(dist.dens, ndist.dens, align = 'h', common.legend = TRUE,
           legend = 'bottom')
 # dev.off()
@@ -95,7 +96,7 @@ ggplot(spdat, aes(dist, col = to_sp, fill = to_sp)) +
   labs(title = 'Human to sp. raw distance')
 # dev.off()
 
-# pdf('../outputs/0076_dist_dens_sep.pdf', width = 10, height = 6)
+# pdf('../outputs/0076_ndist_dens_sep.pdf', width = 10, height = 6)
 ggplot(spdat, aes(dist_norm, col = to_sp, fill = to_sp)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   facet_wrap(~to_sp, scales = 'free') +

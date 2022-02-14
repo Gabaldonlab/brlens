@@ -18,7 +18,7 @@ stats <- function(x) {
   return(y)
 }
 
-dat <- read.csv('../data/0005_dist_noh.csv')
+dat <- read.csv('../data/0076_dist_noh.csv')
 dat <- dat[which(dat$mrca_type == 'S'), ]
 dat <- na.omit(dat)
 
@@ -88,7 +88,7 @@ stats_df <- data.frame(a[, , 1:4])
 stats_df <- cbind(sps, stats_df)
 stats_df <- na.omit(stats_df)
 
-write.csv(stats_df, file = '../outputs/0005_stats_mrcasp.csv')
+write.csv(stats_df, file = '../outputs/0076_stats_mrcasp.csv')
 
 str(stats_df)
 

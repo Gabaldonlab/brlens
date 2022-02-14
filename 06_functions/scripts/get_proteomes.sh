@@ -1,0 +1,6 @@
+ #!/bin/bash
+
+for proteome in 'YEAST.6' 'YEAST.2' 'YARLI.3' 'YARLI.1' 'XENTR.2' 'VANPO.1' 'TETNG.3' 'TAKRU.2' 'SCHPO.4' 'SACPA.1' 'SACMI.1' 'SACKU.1' 'SACKL.1' 'SACCA.1' 'SACBA.1' 'RAT.3  ' 'PLAYO.3' 'PLAFA.3' 'PICST.1' 'PICGU.1' 'PARTE.3' 'PANTR.2' 'NEUCR.4' 'MOUSE.4' 'MONDO.2' 'MACMU.2' 'LODEL.1' 'LEIMA.3' 'KLUWA.1' 'KLULA.4' 'KLULA.2' 'HUMAN.5' 'GUITH.2' 'GIBZE.4' 'ENCCU.3' 'DROME.6' 'DICDI.3' 'DEBHA.4' 'DEBHA.1' 'DANRE.4' 'CRYNE.4' 'CLALS.1' 'CIOIN.3' 'CHLRE.3' 'CHICK.3' 'CANTR.1' 'CANGA.5' 'CANGA.2' 'CANFA.2' 'CANDU.1' 'CANAL.4' 'CANAL.2' 'CAEEL.6' 'CAEBR.3' 'BOVIN.3' 'ASHGO.4' 'ASHGO.2' 'ARATH.3' 'APIME.3' 'ANOGA.5'
+do
+  wget ftp://ftp.phylomedb.org:21/phylomedb/proteomes/${proteome}.fa.gz
+done
