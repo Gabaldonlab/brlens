@@ -53,6 +53,7 @@ med.df <- cbind('to_sp' = row.names(med.df), med.df)
 # pdf('../outputs/0005_dist_dens_sep.pdf', width = 10, height = 6)
 ggplot(spdat, aes(dist, col = to_sp, fill = to_sp)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
+  geom_vline(data = med.df, aes(xintercept = dist), lty = 4) +
   facet_wrap(~to_sp, scales = 'free') +
   xlim(0, 5) +
   labs(title = 'Yeast to sp. raw distance')
@@ -69,7 +70,7 @@ ggplot(spdat, aes(dist_norm_root, col = to_sp, fill = to_sp)) +
   geom_vline(data = med.df, aes(xintercept = dist_norm_root), lty = 4) +
   facet_wrap(~to_sp, scales = 'free') +
   xlim(0, 5) +
-  labs(title = 'Yeast to sp. root-to-tip median normalized distance')
+  labs(title = 'Yeast to sp. root-to-tip normalized distance')
 
 ggplot(spdat, aes(dist_norm_st, col = to_sp, fill = to_sp)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
