@@ -4,6 +4,7 @@
 
 # Libraries loading
 library(ggplot2)
+library(ggpubr)
 theme_set(theme_bw())
 
 # Data import
@@ -13,13 +14,15 @@ phy76 <- read.csv('../outputs/0076_stats_mrcasp.csv')
 str(phy5)
 
 # Data plot
-ggplot(phy5, aes(Mean.dist, Mean.sp)) +
+a <- ggplot(phy5, aes(Mean.dist, Mean.sp)) +
   geom_point()
+
+b <- ggplot(phy5, aes(Mean.dist, Mean.dupl)) +
+  geom_point()
+
+ggarrange(a, b, align = 'h')
 
 ggplot(phy5, aes(Median.dist, Median.sp)) +
-  geom_point()
-
-ggplot(phy5, aes(Mean.dist, Mean.dupl)) +
   geom_point()
 
 ggplot(phy5, aes(Median.dist, Median.dupl)) +
@@ -43,13 +46,15 @@ ggplot(phy5, aes(Mean.dist, Mean.dupl / Mean.sp)) +
 ggplot(phy5, aes(Median.dist, Median.dupl / Median.sp)) +
   geom_point()
 
-ggplot(phy76, aes(Mean.dist, Mean.sp)) +
+a <- ggplot(phy76, aes(Mean.dist, Mean.sp)) +
   geom_point()
+
+b <- ggplot(phy76, aes(Mean.dist, Mean.dupl)) +
+  geom_point()
+
+ggarrange(a, b, align = 'h')
 
 ggplot(phy76, aes(Median.dist, Median.sp)) +
-  geom_point()
-
-ggplot(phy76, aes(Mean.dist, Mean.dupl)) +
   geom_point()
 
 ggplot(phy76, aes(Median.dist, Median.dupl)) +
