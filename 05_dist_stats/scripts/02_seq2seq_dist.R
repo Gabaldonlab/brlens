@@ -18,7 +18,7 @@ stats <- function(x) {
   return(y)
 }
 
-dat <- read.csv('../data/0076_dist_noh.csv')
+dat <- read.csv('../data/0005_dists_noh.csv')
 dat <- dat[which(dat$mrca_type == 'S'), ]
 dat <- na.omit(dat)
 
@@ -29,22 +29,29 @@ choose(length(dat$from_sp[!duplicated(dat$from_sp)]), 2)
 
 remove(a)
 
+data.frame(names(dat))
+
 # pdf('~/Documents/pairs_descr.pdf', width = 10, height = 5)
 for (i in 1:dim(sps)[1]) {
   print(i)
   if (sum(dat$from_sp == sps[i, 1] & dat$to_sp == sps[i, 2]) > 0) {
     sdat <- dat[which(dat$from_sp == sps[i, 1] & dat$to_sp == sps[i, 2] &
                         dat$mrca_type == 'S'), ]
-    sdat_stats <- apply(sdat[, 8:11], 2, stats)
+    sdat_stats <- apply(sdat[, c(8, 9, 11, 13, 15:17)], 2, stats)
     if (!exists('a')) {
-      a <- array(dim = c(dim(sps)[1], dim(sdat_stats)[1], 4),
+      a <- array(dim = c(dim(sps)[1], dim(sdat_stats)[1], 7),
                  dimnames = list(combs, names(stats(rnorm(100))),
-                                 c('dist', 'dist_norm', 'sp', 'dupl')))
+                                 c('dist', 'dist_norm_st', 'dist_norm_mrca',
+                                   'dist_norm_root', 'dist_norm_width',
+                                   'sp', 'dupl')))
     }
     a[i, , 'dist'] <- sdat_stats[, 1]
-    a[i, , 'dist_norm'] <- sdat_stats[, 2]
-    a[i, , 'sp'] <- sdat_stats[, 3]
-    a[i, , 'dupl'] <- sdat_stats[, 4]
+    a[i, , 'dist_norm_st'] <- sdat_stats[, 2]
+    a[i, , 'dist_norm_mrca'] <- sdat_stats[, 3]
+    a[i, , 'dist_norm_root'] <- sdat_stats[, 4]
+    a[i, , 'dist_norm_width'] <- sdat_stats[, 5]
+    a[i, , 'sp'] <- sdat_stats[, 6]
+    a[i, , 'dupl'] <- sdat_stats[, 7]
   }
   
   # pa <- ggplot(sdat, aes(dist)) +
@@ -88,7 +95,7 @@ stats_df <- data.frame(a[, , 1:4])
 stats_df <- cbind(sps, stats_df)
 stats_df <- na.omit(stats_df)
 
-write.csv(stats_df, file = '../outputs/0076_stats_mrcasp.csv')
+write.csv(stats_df, file = '../outputs/0005_stats_mrcasp.csv')
 
 str(stats_df)
 
