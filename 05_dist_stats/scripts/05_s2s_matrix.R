@@ -14,12 +14,12 @@ for (i in 1:dim(sp.com)[1]) {
                         dat$mrca_type == 'S'), ]
   sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'dist.mea'] <- mean(tr.dat$dist)
   sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'dist.med'] <- median(tr.dat$dist)
-  sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'ndist.mea'] <- mean(tr.dat$dist_norm)
-  sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'ndist.med'] <- median(tr.dat$dist_norm)
+  sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'ndist.mea'] <- mean(tr.dat$dist_norm_mrca)
+  sp2sp.mat[sp.com[i, 1], sp.com[i, 2], 'ndist.med'] <- median(tr.dat$dist_norm_mrca)
   sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'dist.mea'] <- mean(tr.dat$dist)
   sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'dist.med'] <- median(tr.dat$dist)
-  sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'ndist.mea'] <- mean(tr.dat$dist_norm)
-  sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'ndist.med'] <- median(tr.dat$dist_norm)
+  sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'ndist.mea'] <- mean(tr.dat$dist_norm_mrca)
+  sp2sp.mat[sp.com[i, 2], sp.com[i, 1], 'ndist.med'] <- median(tr.dat$dist_norm_mrca)
 }
 
 heatmap(sp2sp.mat[, , 'dist.mea'], main = 'dist.mea')
