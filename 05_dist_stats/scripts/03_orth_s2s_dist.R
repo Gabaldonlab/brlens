@@ -32,6 +32,14 @@ spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == 'YEAST' |
 
 spdat$species_to <- apply(spdat, 1, get_other, ref = 'YEAST')
 
+med.df <- data.frame(apply(spdat[, c(8:17, 20)], 2, FUN = median_sp))
+med.df <- cbind('species_to' = row.names(med.df), med.df)
+
+s2s_med_dist <- aggregate(spdat, by = list(spdat$tree), FUN = median)[, c(1, 9)]
+row.names(s2s_med_dist) <- s2s_med_dist[, 1]
+
+spdat$dist_norm_s2s <- spdat$dist / s2s_med_dist[spdat$tree, 2]
+
 # Basic descriptive plots
 dist.dens <- ggplot(spdat, aes(dist, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6) +
@@ -62,16 +70,19 @@ dist.dens.root <- ggplot(spdat, aes(dist_norm_root, col = species_to,
   xlim(0, 5) +
   labs(title = 'YEAST to sp. root-to-tip norm')
 
+dist.dens.s2s <- ggplot(spdat, aes(dist_norm_s2s, col = species_to,
+                                    fill = species_to)) +
+  geom_density(alpha = 0.6) +
+  xlim(0, 5) +
+  labs(title = 'YEAST to sp. seq-to-seq norm')
+
 # pdf('../outputs/0005_dist_dens.pdf', width = 10, height = 6)
 ggarrange(dist.dens, dist.dens.width, dist.dens.root, dist.dens.st,
-          dist.dens.mrca, align = 'hv', common.legend = TRUE,
+          dist.dens.mrca, dist.dens.s2s, align = 'hv', common.legend = TRUE,
           legend = 'bottom')
 # dev.off()
 
-med.df <- data.frame(apply(spdat[, 8:17], 2, FUN = median_sp))
-med.df <- cbind('species_to' = row.names(med.df), med.df)
-
-ggplot(spdat, aes(dist_norm_mrca, col = species_to, fill = species_to)) +
+ggplot(spdat, aes(dist_norm_s2ss, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.4) +
   xlim(0, 5) +
   labs(title = 'YEAST to sp. tree width norm') +
@@ -116,6 +127,13 @@ ggplot(spdat, aes(dist_norm_mrca, col = species_to, fill = species_to)) +
   facet_wrap(~species_to, scales = 'free') +
   xlim(0, 5) +
   labs(title = 'Yeast to sp. MRCA paris normalised distance')
+
+ggplot(spdat, aes(dist_norm_s2s, col = species_to, fill = species_to)) +
+  geom_density(alpha = 0.6, show.legend = FALSE) +
+  geom_vline(data = med.df, aes(xintercept = dist_norm_s2s), lty = 4) +
+  facet_wrap(~species_to, scales = 'free') +
+  xlim(0, 5) +
+  labs(title = 'Yeast to sp. seq to seq normalised distance')
 # dev.off()
 
 # Paired plots
@@ -147,6 +165,14 @@ spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == 'HUMAN' |
 
 spdat$species_to <- apply(spdat, 1, get_other, ref = 'HUMAN')
 
+med.df <- data.frame(apply(spdat[, c(8:17, 20)], 2, FUN = median_sp))
+med.df <- cbind('species_to' = row.names(med.df), med.df)
+
+s2s_med_dist <- aggregate(spdat, by = list(spdat$tree), FUN = median)[, c(1, 9)]
+row.names(s2s_med_dist) <- s2s_med_dist[, 1]
+
+spdat$dist_norm_s2s <- spdat$dist / s2s_med_dist[spdat$tree, 2]
+
 # Basic descriptive plots
 dist.dens <- ggplot(spdat, aes(dist, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6) +
@@ -177,16 +203,19 @@ dist.dens.root <- ggplot(spdat, aes(dist_norm_root, col = species_to,
   xlim(0, 5) +
   labs(title = 'HUMAN to sp. root-to-tip norm')
 
+dist.dens.s2s <- ggplot(spdat, aes(dist_norm_s2s, col = species_to,
+                                   fill = species_to)) +
+  geom_density(alpha = 0.6) +
+  xlim(0, 5) +
+  labs(title = 'HUMAN to sp. seq-to-seq norm')
+
 # pdf('../outputs/0076_dist_dens.pdf', width = 10, height = 6)
 ggarrange(dist.dens, dist.dens.width, dist.dens.root, dist.dens.st,
-          dist.dens.mrca, align = 'hv', common.legend = TRUE,
+          dist.dens.mrca, dist.dens.s2s, align = 'hv', common.legend = TRUE,
           legend = 'bottom')
 # dev.off()
 
-med.df <- data.frame(apply(spdat[, 8:17], 2, FUN = median_sp))
-med.df <- cbind('species_to' = row.names(med.df), med.df)
-
-ggplot(spdat, aes(dist_norm_mrca, col = species_to, fill = species_to)) +
+ggplot(spdat, aes(dist_norm_s2ss, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.4) +
   xlim(0, 5) +
   labs(title = 'HUMAN to sp. tree width norm') +
@@ -194,43 +223,50 @@ ggplot(spdat, aes(dist_norm_mrca, col = species_to, fill = species_to)) +
                                 color = species_to),
              show.legend = FALSE)
 
-human_sort <- med.df[order(med.df$dist_norm_mrca), 'species_to']
+HUMAN_sort <- med.df[order(med.df$dist_norm_mrca), 'species_to']
 
 # pdf('../outputs/0076_dist_dens_sep.pdf', width = 10, height = 6)
 ggplot(spdat, aes(dist, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   geom_vline(data = med.df, aes(xintercept = dist), lty = 4) +
   facet_wrap(~species_to, scales = 'free') +
-  xlim(0, 7) +
+  xlim(0, 5) +
   labs(title = 'HUMAN to sp. raw distance')
 
 ggplot(spdat, aes(dist_norm_width, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   facet_wrap(~species_to, scales = 'free') +
   geom_vline(data = med.df, aes(xintercept = dist_norm_width), lty = 4) +
-  xlim(0, 7) +
+  xlim(0, 5) +
   labs(title = 'HUMAN to sp. tree width normalised distance')
 
 ggplot(spdat, aes(dist_norm_root, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   geom_vline(data = med.df, aes(xintercept = dist_norm_root), lty = 4) +
   facet_wrap(~species_to, scales = 'free') +
-  xlim(0, 7) +
+  xlim(0, 5) +
   labs(title = 'HUMAN to sp. root-to-tip normalized distance')
 
 ggplot(spdat, aes(dist_norm_st, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   geom_vline(data = med.df, aes(xintercept = dist_norm_st), lty = 4) +
   facet_wrap(~species_to, scales = 'free') +
-  xlim(0, 7) +
+  xlim(0, 5) +
   labs(title = 'HUMAN to sp. subtree normalised distance')
 
 ggplot(spdat, aes(dist_norm_mrca, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.6, show.legend = FALSE) +
   geom_vline(data = med.df, aes(xintercept = dist_norm_mrca), lty = 4) +
   facet_wrap(~species_to, scales = 'free') +
-  xlim(0, 7) +
+  xlim(0, 5) +
   labs(title = 'HUMAN to sp. MRCA paris normalised distance')
+
+ggplot(spdat, aes(dist_norm_s2s, col = species_to, fill = species_to)) +
+  geom_density(alpha = 0.6, show.legend = FALSE) +
+  geom_vline(data = med.df, aes(xintercept = dist_norm_s2s), lty = 4) +
+  facet_wrap(~species_to, scales = 'free') +
+  xlim(0, 5) +
+  labs(title = 'HUMAN to sp. seq to seq normalised distance')
 # dev.off()
 
 # Paired plots

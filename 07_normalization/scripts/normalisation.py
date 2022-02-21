@@ -137,42 +137,29 @@ def root_tt_ref(tree):
         Exception: description
     '''
 
+    twdth = tree.get_farthest_leaf()[1]
+
     distl = list()
+    rdist = list()
+
     for leaf in tree.get_leaf_names():
         distl.append(tree.get_distance(leaf))
+        rdist.append(tree.get_distance(leaf) / twdth)
 
-    twdth = tree.get_farthest_leaf()[1]
     mean = np.mean(distl)
     med = np.median(distl)
     skew = stats.skew(distl)
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rstats = {'twdth': twdth, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd}
-
-    return rstats
-
-
-def paired_ref(tree):
-    leaves = tree.get_leaf_names()
-
-    distl = list()
-
-    for i, leaf_from in enumerate(leaves):
-        for leaf_to in leaves[i + 1:]:
-            mrca = tree.get_common_ancestor(leaf_from, leaf_to)
-            if (leaf_from != leaf_to and mrca.evoltype == 'S'):
-                distl.append(tree.get_distance(leaf_from, leaf_to))
-
-    twdth = tree.get_farthest_leaf()[1]
-    mean = np.mean(distl)
-    med = np.median(distl)
-    skew = stats.skew(distl)
-    kurt = stats.kurtosis(distl)
-    sd = st.stdev(distl)
+    rmean = np.mean(rdist)
+    rmed = np.median(rdist)
+    rskew = stats.skew(rdist)
+    rkurt = stats.kurtosis(rdist)
+    rsd = st.stdev(rdist)
 
     rstats = {'twdth': twdth, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd}
+              'kurt': kurt, 'sd': sd, 'rmean': rmean, 'rmed': rmed,
+              'rskew': rskew, 'rkurt': rkurt, 'rsd': rsd}
 
     return rstats

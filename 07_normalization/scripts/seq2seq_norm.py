@@ -20,7 +20,7 @@ from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
-from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref, paired_ref
+from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -122,7 +122,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
     st_ref = subtree_tt_ref(tree)
     mrca_ref = mrca_tt_ref(tree)
     root_ref = root_tt_ref(tree)
-    paired = paired_ref(tree)
 
     dist = tree.get_distance(from_seq, to_seq)
     events = get_events(tree, from_seq, to_seq)
@@ -138,8 +137,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
     leafdistd['dist'] = dist
     leafdistd['dist_norm_st'] = dist / st_ref['med']
     leafdistd['st_median'] = st_ref['med']
-    leafdistd['dist_paired'] = dist / paired['med']
-    leafdistd['paired_median'] = paired['med']
     leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
     leafdistd['mrca_median'] = mrca_ref['med']
     leafdistd['dist_norm_root'] = dist / root_ref['med']
@@ -158,7 +155,6 @@ def get_sp_dist(tree, from_seq, to_seq):
 
     mrca_ref = mrca_tt_ref(tree)
     root_ref = root_tt_ref(tree)
-    paired = paired_ref(tree)
 
     dist = tree.get_distance(from_seq, to_seq)
 
@@ -170,8 +166,6 @@ def get_sp_dist(tree, from_seq, to_seq):
     leafdistd['mrca_median'] = mrca_ref['med']
     leafdistd['dist_norm_root'] = dist / root_ref['med']
     leafdistd['root_median'] = root_ref['med']
-    leafdistd['dist_paired'] = dist / paired['med']
-    leafdistd['paired_median'] = paired['med']
     leafdistd['dist_norm_width'] = dist / root_ref['twdth']
     leafdistd['root_median'] = root_ref['twdth']
 
