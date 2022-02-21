@@ -114,13 +114,35 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
-              prot_dict):
+def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
+    '''
+    Retrieves distances between pairs of sequences
+
+    The function gets a set of two sequences and calculates the distances
+    between them and associates the tree with some information. Retrieves
+    a dictionary with the main features and distances of the tree.
+
+    Args:
+      tree (PhyloTree): phylogenetic tree imported with ete3
+      from_seq (char): string with the from leaf name
+      to_seq (char): string with the to leaf name
+      seed_id (char): name of the seed sequence
+      phylome_id (char): code of the phylome in PhylomeDB
+      prot_dict (dictionary): contains the protein id linked to the tree
+
+    Returns:
+      dict: main features and distances of the tree
+
+    Raises:
+      Exception: description
+
+    '''
+
     root(tree, root_dict[int(phylome_id)])
     tree.get_descendant_evol_events()
 
     st_ref = subtree_tt_ref(tree)
-    mrca_ref = mrca_tt_ref(tree)
+    # mrca_ref = mrca_tt_ref(tree)
     root_ref = root_tt_ref(tree)
 
     dist = tree.get_distance(from_seq, to_seq)
@@ -137,12 +159,14 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id,
     leafdistd['dist'] = dist
     leafdistd['dist_norm_st'] = dist / st_ref['med']
     leafdistd['st_median'] = st_ref['med']
-    leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
-    leafdistd['mrca_median'] = mrca_ref['med']
-    leafdistd['dist_norm_root'] = dist / root_ref['med']
-    leafdistd['root_median'] = root_ref['med']
-    leafdistd['dist_norm_width'] = dist / root_ref['twdth']
-    leafdistd['root_median'] = root_ref['twdth']
+    # leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
+    # leafdistd['mrca_median'] = mrca_ref['med']
+    # leafdistd['dist_norm_root'] = dist / root_ref['med']
+    # leafdistd['root_median'] = root_ref['med']
+    # leafdistd['dist_norm_width'] = dist / root_ref['twdth']
+    # leafdistd['root_median'] = root_ref['twdth']
+    # leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
+    # leafdistd['rbls'] = root_ref['rwdth']
     leafdistd['sp'] = events['S']
     leafdistd['dupl'] = events['D']
     leafdistd['mrca_type'] = events['MRCA']
@@ -168,18 +192,19 @@ def get_sp_dist(tree, from_seq, to_seq):
     leafdistd['root_median'] = root_ref['med']
     leafdistd['dist_norm_width'] = dist / root_ref['twdth']
     leafdistd['root_median'] = root_ref['twdth']
+    leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
+    leafdistd['rbls'] = root_ref['rwdth']
 
     return leafdistd
 
 
 class dist_process(Process):
-    def __init__(self, tree_row, phylome_id, prot_dict, olist, sp_tree):
+    def __init__(self, tree_row, phylome_id, prot_dict, olist):
         Process.__init__(self)
         self.tree_row = tree_row
         self.phylome_id = phylome_id
         self.prot_dict = prot_dict
         self.olist = olist
-        self.sp_tree = sp_tree
 
     def run(self):
         tree = self.tree_row.split('\t')
@@ -196,8 +221,7 @@ class dist_process(Process):
                 for to_seq in tnames[i + 1:]:
                     if from_seq != to_seq:
                         leaf_dist = get_dists(t, from_seq, to_seq, tree[0],
-                                              self.phylome_id, self.prot_dict,
-                                              self.sp_tree)
+                                              self.phylome_id, self.prot_dict)
                         if leaf_dist is not None:
                             self.olist.append(leaf_dist)
 
@@ -224,7 +248,7 @@ def main():
     parser.add_option('-s', '--sp', dest='sp_tree',
                       help='This option only requires a tree, not ' +
                            'proteins file.',
-                      action='store_true')
+                      action='store_true', default=False)
     (options, args) = parser.parse_args()
 
     if options.default:
@@ -262,9 +286,8 @@ def main():
             odf.to_csv(dist_fn, index=False)
 
     else:
+        dist_fn = '/'.join([odir, (file_id + '_dist.csv')])
         if not file_exists(dist_fn):
-            dist_fn = '/'.join([odir, (file_id + '_dist.csv')])
-
             print('Creating: ', dist_fn)
 
             create_folder(odir)

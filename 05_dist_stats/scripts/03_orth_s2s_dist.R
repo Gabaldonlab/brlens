@@ -82,11 +82,11 @@ ggarrange(dist.dens, dist.dens.width, dist.dens.root, dist.dens.st,
           legend = 'bottom')
 # dev.off()
 
-ggplot(spdat, aes(dist_norm_s2ss, col = species_to, fill = species_to)) +
+ggplot(spdat, aes(dist_norm_s2s, col = species_to, fill = species_to)) +
   geom_density(alpha = 0.4) +
   xlim(0, 5) +
   labs(title = 'YEAST to sp. tree width norm') +
-  geom_vline(data = med.df, aes(xintercept = dist_norm_mrca,
+  geom_vline(data = med.df, aes(xintercept = dist_norm_s2s,
                                 color = species_to),
              show.legend = FALSE)
 

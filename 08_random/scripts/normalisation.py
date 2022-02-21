@@ -30,7 +30,13 @@ def subtree_tt_ref(tree):
 
     Args:
         tree (Phylotree): phylome tree
-
+    # rmean = np.mean(rdist)
+    # rmed = np.median(rdist)
+    # rskew = stats.skew(rdist)
+    # rkurt = stats.kurtosis(rdist)
+    # rsd = st.stdev(rdist)
+    #
+    # rwidth = sum(rdist)
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
 
@@ -41,7 +47,7 @@ def subtree_tt_ref(tree):
     mphsptrees = dict()
     mphgtrees = dict()
     for i, subtree in enumerate(tree.traverse()):
-        sps = [sp.split('_')[1] for sp in subtree.get_leaf_names()]
+        sps = [sp for sp in subtree.get_leaf_names()]
         if (len(sps) == len(set(sps)) and len(sps) > 10 and
                 subtree.get_farthest_leaf()[1] != 0):
             mphsptrees[len(sps)] = subtree
@@ -137,32 +143,30 @@ def root_tt_ref(tree):
         Exception: description
     '''
 
-    twdth = tree.get_farthest_leaf()[1]
-
     distl = list()
     rdist = list()
 
     for leaf in tree.get_leaf_names():
         distl.append(tree.get_distance(leaf))
-        # rdist.append(tree.get_distance(leaf) / twdth)
+        rdist.append(tree.get_distance(leaf))
 
+    twdth = tree.get_farthest_leaf()[1]
     mean = np.mean(distl)
     med = np.median(distl)
     skew = stats.skew(distl)
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    # rmean = np.mean(rdist)
-    # rmed = np.median(rdist)
-    # rskew = stats.skew(rdist)
-    # rkurt = stats.kurtosis(rdist)
-    # rsd = st.stdev(rdist)
-    #
-    # rwidth = sum(rdist)
+    rmean = np.mean(rdist)
+    rmed = np.median(rdist)
+    rskew = stats.skew(rdist)
+    rkurt = stats.kurtosis(rdist)
+    rsd = st.stdev(rdist)
+
+    rwidth = sum(rdist) / twdth
 
     rstats = {'twdth': twdth, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd}
-              # 'rmean': rmean, 'rmed': rmed,
-              # 'rskew': rskew, 'rkurt': rkurt, 'rsd': rsd, 'rwdth': rwidth}
+              'kurt': kurt, 'sd': sd, 'rmean': rmean, 'rmed': rmed,
+              'rskew': rskew, 'rkurt': rkurt, 'rsd': rsd, 'rwdth': rwidth}
 
     return rstats
