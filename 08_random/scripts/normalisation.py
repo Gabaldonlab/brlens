@@ -19,7 +19,7 @@ import statistics as st
 
 
 # Definitions ----
-def subtree_tt_ref(tree):
+def subtree_tt_ref(tree, tid):
     '''
     Subtree to tip distance statistics
 
@@ -74,13 +74,13 @@ def subtree_tt_ref(tree):
     kurt = stats.kurtosis(rtldist)
     sd = st.stdev(rtldist)
 
-    rstats = {'wdth': wdth, 'mean': mean, 'med': med,
+    rstats = {'id': tid, 'wdth': wdth, 'mean': mean, 'med': med,
               'skew': skew, 'kurt': kurt, 'sd': sd}
 
     return rstats
 
 
-def mrca_tt_ref(tree):
+def mrca_tt_ref(tree, tid):
     '''
     MRCA node to tip distance statistics
 
@@ -119,13 +119,13 @@ def mrca_tt_ref(tree):
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rstats = {'mean': mean, 'med': med, 'skew': skew,
+    rstats = {'id': tid, 'mean': mean, 'med': med, 'skew': skew,
               'kurt': kurt, 'sd': sd}
 
     return rstats
 
 
-def root_tt_ref(tree):
+def root_tt_ref(tree, tid):
     '''
     Root to tip distance statistics
 
@@ -144,11 +144,9 @@ def root_tt_ref(tree):
     '''
 
     distl = list()
-    rdist = list()
 
     for leaf in tree.get_leaf_names():
         distl.append(tree.get_distance(leaf))
-        rdist.append(tree.get_distance(leaf))
 
     twdth = tree.get_farthest_leaf()[1]
     mean = np.mean(distl)
@@ -157,16 +155,19 @@ def root_tt_ref(tree):
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rmean = np.mean(rdist)
-    rmed = np.median(rdist)
-    rskew = stats.skew(rdist)
-    rkurt = stats.kurtosis(rdist)
-    rsd = st.stdev(rdist)
+    rbs = sum(distl) / twdth
 
-    rwidth = sum(rdist) / twdth
+    rstats = {'id': tid, 'twdth': twdth, 'mean': mean, 'med': med,
+              'skew': skew,
+              'kurt': kurt, 'sd': sd, 'rbs': rbs}
 
-    rstats = {'twdth': twdth, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd, 'rmean': rmean, 'rmed': rmed,
-              'rskew': rskew, 'rkurt': rkurt, 'rsd': rsd, 'rwdth': rwidth}
+    return rstats
+
+
+def rbls_ref(tree, tid):
+    brls = [x.dist for x in tree.traverse()]
+    twdth = tree.get_farthest_leaf()[1]
+
+    rstats = {'id': tid, 'sum_brl': sum(brls), 'twdth': twdth}
 
     return rstats

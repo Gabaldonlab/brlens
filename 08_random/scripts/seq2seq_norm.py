@@ -18,7 +18,7 @@ import os
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
-from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref
+from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref, rbls_ref
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -112,7 +112,8 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, tree_id):
+def get_dists(tree, from_seq, to_seq, tree_id, st_ref, mrca_ref,
+              root_ref, rbls):
     '''
     Retrieves distances between pairs of sequences
 
@@ -136,12 +137,6 @@ def get_dists(tree, from_seq, to_seq, tree_id):
 
     '''
 
-    tree.get_descendant_evol_events()
-
-    st_ref = subtree_tt_ref(tree)
-    mrca_ref = mrca_tt_ref(tree)
-    root_ref = root_tt_ref(tree)
-
     dist = tree.get_distance(from_seq, to_seq)
     events = get_events(tree, from_seq, to_seq)
 
@@ -150,29 +145,34 @@ def get_dists(tree, from_seq, to_seq, tree_id):
     leafdistd['from'] = from_seq
     leafdistd['to'] = to_seq
     leafdistd['dist'] = dist
-    leafdistd['dist_norm_st'] = dist / st_ref['med']
-    leafdistd['st_median'] = st_ref['med']
-    leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
-    leafdistd['mrca_median'] = mrca_ref['med']
-    leafdistd['dist_norm_root'] = dist / root_ref['med']
-    leafdistd['root_median'] = root_ref['med']
-    leafdistd['dist_norm_width'] = dist / root_ref['twdth']
-    leafdistd['root_median'] = root_ref['twdth']
-    leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
-    leafdistd['rbls'] = root_ref['rwdth']
-    leafdistd['sp'] = events['S']
-    leafdistd['dupl'] = events['D']
-    leafdistd['mrca_type'] = events['MRCA']
+    # leafdistd['dist_norm_st'] = dist / st_ref['med']
+    # leafdistd['st_median'] = st_ref['med']
+    # leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
+    # leafdistd['mrca_median'] = mrca_ref['med']
+    # leafdistd['dist_norm_root'] = dist / root_ref['med']
+    # leafdistd['root_median'] = root_ref['med']
+    # leafdistd['dist_norm_width'] = dist / root_ref['twdth']
+    # leafdistd['root_median'] = root_ref['twdth']
+    # leafdistd['dist_norm_rbls'] = dist / rbls
+    # leafdistd['rbls'] = rbls
+    # leafdistd['sp'] = events['S']
+    # leafdistd['dupl'] = events['D']
+    # leafdistd['mrca_type'] = events['MRCA']
 
     return leafdistd
 
 
 class dist_process(Process):
-    def __init__(self, tree_row, row_no, olist):
+    def __init__(self, tree_row, row_no, olist, st_list, mrca_list,
+                 root_list, rbls_list):
         Process.__init__(self)
         self.tree_row = tree_row
         self.row_no = row_no
         self.olist = olist
+        self.st_list = st_list
+        self.mrca_list = mrca_list
+        self.root_list = root_list
+        self.rbls_list = rbls_list
 
     def run(self):
         t = ete3.PhyloTree(self.tree_row, sp_naming_function=get_species_tag)
@@ -182,10 +182,22 @@ class dist_process(Process):
 
         tnames = t.get_leaf_names()
 
+        t.get_descendant_evol_events()
+
+        st_ref = subtree_tt_ref(t, self.row_no)
+        self.st_list.append(st_ref)
+        mrca_ref = mrca_tt_ref(t, self.row_no)
+        self.mrca_list.append(mrca_ref)
+        root_ref = root_tt_ref(t, self.row_no)
+        self.root_list.append(root_ref)
+        rbls = rbls_ref(t, self.row_no)
+        self.rbls_list.append(rbls)
+
         for i, from_seq in enumerate(tnames):
             for to_seq in tnames[i + 1:]:
                 if from_seq != to_seq:
-                    leaf_dist = get_dists(t, from_seq, to_seq, self.row_no)
+                    leaf_dist = get_dists(t, from_seq, to_seq, self.row_no,
+                                          st_ref, mrca_ref, root_ref, rbls)
                     if leaf_dist is not None:
                         self.olist.append(leaf_dist)
 
@@ -207,6 +219,10 @@ def main():
 
         with Manager() as manager:
             olist = manager.list()
+            st_list = manager.list()
+            mrca_list = manager.list()
+            root_list = manager.list()
+            rbls_list = manager.list()
 
             processes = list()
             row = 1
@@ -220,7 +236,8 @@ def main():
                                     processes.remove(process)
                                     done = True
 
-                    process = dist_process(tree_row, row, olist)
+                    process = dist_process(tree_row, row, olist, st_list,
+                                           mrca_list, root_list, rbls_list)
                     processes.append(process)
                     process.start()
                 row += 1
@@ -231,6 +248,18 @@ def main():
             # Writing output files
             odf = pd.DataFrame(list(olist))
             odf.to_csv(dist_fn, index=False)
+
+            odf = pd.DataFrame(list(mrca_list))
+            odf.to_csv('../outputs/mrca.csv', index=False)
+
+            odf = pd.DataFrame(list(root_list))
+            odf.to_csv('../outputs/root.csv', index=False)
+
+            odf = pd.DataFrame(list(rbls_list))
+            odf.to_csv('../outputs/rbls.csv', index=False)
+
+            odf = pd.DataFrame(list(st_list))
+            odf.to_csv('../outputs/st.csv', index=False)
 
 
 if __name__ == '__main__':

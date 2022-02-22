@@ -114,7 +114,8 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
+def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict,
+              st_ref, mrca_ref, root_ref):
     '''
     Retrieves distances between pairs of sequences
 
@@ -138,13 +139,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
 
     '''
 
-    root(tree, root_dict[int(phylome_id)])
-    tree.get_descendant_evol_events()
-
-    st_ref = subtree_tt_ref(tree)
-    # mrca_ref = mrca_tt_ref(tree)
-    root_ref = root_tt_ref(tree)
-
     dist = tree.get_distance(from_seq, to_seq)
     events = get_events(tree, from_seq, to_seq)
 
@@ -159,14 +153,14 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict):
     leafdistd['dist'] = dist
     leafdistd['dist_norm_st'] = dist / st_ref['med']
     leafdistd['st_median'] = st_ref['med']
-    # leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
-    # leafdistd['mrca_median'] = mrca_ref['med']
-    # leafdistd['dist_norm_root'] = dist / root_ref['med']
-    # leafdistd['root_median'] = root_ref['med']
-    # leafdistd['dist_norm_width'] = dist / root_ref['twdth']
-    # leafdistd['root_median'] = root_ref['twdth']
-    # leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
-    # leafdistd['rbls'] = root_ref['rwdth']
+    leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
+    leafdistd['mrca_median'] = mrca_ref['med']
+    leafdistd['dist_norm_root'] = dist / root_ref['med']
+    leafdistd['root_median'] = root_ref['med']
+    leafdistd['dist_norm_width'] = dist / root_ref['twdth']
+    leafdistd['root_median'] = root_ref['twdth']
+    leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
+    leafdistd['rbls'] = root_ref['rwdth']
     leafdistd['sp'] = events['S']
     leafdistd['dupl'] = events['D']
     leafdistd['mrca_type'] = events['MRCA']
@@ -217,11 +211,19 @@ class dist_process(Process):
 
             tnames = t.get_leaf_names()
 
+            root(tree, root_dict[int(self.phylome_id)])
+            tree.get_descendant_evol_events()
+
+            st_ref = subtree_tt_ref(tree)
+            mrca_ref = mrca_tt_ref(tree)
+            root_ref = root_tt_ref(tree)
+
             for i, from_seq in enumerate(tnames):
                 for to_seq in tnames[i + 1:]:
                     if from_seq != to_seq:
                         leaf_dist = get_dists(t, from_seq, to_seq, tree[0],
-                                              self.phylome_id, self.prot_dict)
+                                              self.phylome_id, self.prot_dict,
+                                              st_ref, mrca_ref, root_ref)
                         if leaf_dist is not None:
                             self.olist.append(leaf_dist)
 

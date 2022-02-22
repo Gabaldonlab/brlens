@@ -25,14 +25,50 @@ median_sp <- function(x) {
 # Analysis ----
 dat <- read.csv('../outputs/rand_phylome_dist.csv')
 
-spdat <- dat[which(dat$mrca_type == 'S' & dat$from == 'A' | 
+spdat <- dat[which(dat$from == 'A' | 
                      dat$to == 'A' & dat$from != dat$to), ]
 
 spdat$species_to <- apply(spdat, 1, get_other, ref = 'A')
 
-s2s_med_dist <- aggregate(spdat, by = list(spdat$id), FUN = median)[, c(2, 5)]
-row.names(s2s_med_dist) <- s2s_med_dist[, 1]
-spdat$dist_norm_s2s <- spdat$dist / s2s_med_dist[spdat$id, 2]
+s2s_ref <- aggregate(spdat, by = list(spdat$id), FUN = median)[, c(2, 5)]
+row.names(s2s_ref) <- s2s_ref[, 1]
+
+mrca_ref <- read.csv('../outputs/mrca.csv', row.names = 1)
+rbls_ref <- read.csv('../outputs/rbls.csv', row.names = 1)
+root_ref <- read.csv('../outputs/root.csv', row.names = 1)
+st_ref <- read.csv('../outputs/st.csv', row.names = 1)
+
+spdat$mrca_dist <- spdat$dist / mrca_ref[spdat$id, 'med']
+spdat$root_dist <- spdat$dist / root_ref[spdat$id, 'med']
+spdat$st_dist <- spdat$dist / st_ref[spdat$id, 'med']
+spdat$s2s_dist <- spdat$dist / s2s_ref[spdat$id, 'dist']
+
+norm_fact <- rbls_ref[spdat$id, 'sum_brl'] /
+  median(rbls_ref$sum_brl) + rbls_ref[spdat$id, 'twdth'] /
+  median(rbls_ref[, 'twdth'])
+norm_fact <- rbls_ref[spdat$id, 'sum_brl'] /
+  (median(rbls_ref$sum_brl) * sd(rbls_ref$sum_brl))
+# norm_fact <- rbls_ref[spdat$id, 'twdth'] /
+#   (median(rbls_ref$twdth) * sd(rbls_ref$twdth))
+
+spdat$brls <- spdat$dist / norm_fact
+
+a <- ggplot(spdat, aes(x = dist, col = species_to)) +
+  geom_density()
+b <- ggplot(spdat, aes(x = root_dist, col = species_to)) +
+  geom_density() +
+  xlim(0, 2.5) +
+  xlab('ndist with root to tip median')
+c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
+  geom_density() +
+  xlim(0, 4) +
+  xlab('ndist with mrca to tip pairs median')
+d <- ggplot(spdat, aes(x = brls, col = species_to)) +
+  geom_density() +
+  xlim(0, 75) +
+  xlab('ndist with standardized brlens sum and width')
+
+ggarrange(a, b, c, d, common.legend = TRUE)
 
 med.df <- data.frame(apply(spdat[, c(4:13, 18)], 2, FUN = median_sp))
 med.df <- cbind('species_to' = row.names(med.df), med.df)
@@ -91,9 +127,19 @@ dist.dens.s2s <- ggplot(spdat, aes(dist_norm_s2s, col = species_to,
                                 color = species_to),
              show.legend = FALSE)
 
+dist.dens.rbls <- ggplot(spdat, aes(dist_norm_rbls, col = species_to,
+                                    fill =  species_to)) +
+  geom_density(alpha = 0.6) +
+  xlim(0, 5) +
+  labs(title = 'A to sp. seq-to-seq norm') +
+  geom_vline(data = med.df, aes(xintercept = dist_norm_rbls,
+                                color = species_to),
+             show.legend = FALSE)
+
 # pdf('../outputs/dist_dens.pdf', width = 10, height = 6)
 ggarrange(dist.dens, dist.dens.width, dist.dens.root, dist.dens.st,
-          dist.dens.mrca, dist.dens.s2s, align = 'hv', common.legend = TRUE,
+          dist.dens.mrca, dist.dens.s2s, dist.dens.rbls,
+          align = 'hv', common.legend = TRUE,
           legend = 'bottom')
 # dev.off()
 
@@ -139,12 +185,28 @@ ggplot(spdat, aes(dist_norm_s2s, col = species_to, fill = species_to)) +
   facet_wrap(~species_to, scales = 'free') +
   xlim(0, 5) +
   labs(title = 'A to sp. seq to seq normalised distance')
+
+ggplot(spdat, aes(dist_norm_rbls, col = species_to, fill = species_to)) +
+  geom_density(alpha = 0.6, show.legend = FALSE) +
+  geom_vline(data = med.df, aes(xintercept = dist_norm_rbls), lty = 4) +
+  facet_wrap(~species_to, scales = 'free') +
+  xlim(0, 5) +
+  labs(title = 'A to sp. seq to seq normalised distance')
 # dev.off()
 
 A_sort <- med.df[order(med.df$dist_norm_mrca), 'species_to']
 
 sp_dat <- read.csv('../outputs/sptree_dist.csv')
-a <- med.df[, -1] - spdat[1:4, ]$dist
+a <- med.df[, c(2, 3, 5, 7, 9, 10, 12)] - sp_dat[1:4, ]$dist
 apply(a[-4, ], 2, sum)
 
 write.csv(a, file = '../outputs/norm_tau_differences.csv')
+
+
+normsampl <- sample(c(rgamma(200, 23, 12), rgamma(200, 1, 3)), 200)
+
+samp <- sample(c(rgamma(200, 23, 12) + 4, rgamma(200, 1, 3) + 4), 200)
+
+ggplot() +
+  geom_density(aes(x = samp / normsampl)) +
+  xlim(0, 7)

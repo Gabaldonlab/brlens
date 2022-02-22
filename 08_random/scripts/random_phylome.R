@@ -18,7 +18,8 @@ rtreeset <- function(reftree, n = 100, mean_rate = 1) {
     # this is because of we want conservative trees
     alpha <- 2
     beta <- alpha / mean_rate
-    rate <- rgamma(1, alpha, beta)
+    # rate <- rgamma(1, alpha, beta)
+    rate <- sample(c(rgamma(1, 23, 12), rgamma(1, 1, 3)), 1)
     br_rates <- abs(rnorm(reftree$Nnode + length(reftree$tip.label) - 1,
                           rate, 0.1))
     nt$edge.length <- br_rates * reftree$edge.length
@@ -29,8 +30,15 @@ rtreeset <- function(reftree, n = 100, mean_rate = 1) {
   return(otrees)
 }
 
+par(mfrow = c(1, 2))
+x <- 0:400/100
+plot(x, dgamma(x, 24, 10), type = 'l')
+lines(x, dgamma(x, 2, 2))
+
+plot(x, dgamma(x, 23, 12) + dgamma(x, 1, 3), type = 'l')
+
 # Reference tree ----
-t_text <- '(((A:0.7,B:0.4):1,(C:0.12,D:0.5):2):1.2,E:1);'
+t_text <- '(((A:0.7,B:0.6):1.3,(C:0.3,D:0.5):2):1.2,E:3);'
 t <- read.tree(text = t_text)
 
 t_labs <- c('tau[A]', 'tau[B]', 'tau[C]', 'tau[D]', 'tau[E]', 'R',
@@ -44,7 +52,8 @@ ggtree(t) +
 rtrees <- rtreeset(t, n = 1000, mean_rate = 1)
 
 # plot densitrees
-ggdensitree(rtrees, alpha = 0.3)
+ggdensitree(sample(rtrees, 100), alpha = 0.3)
 
 # Write trees ----
 write.tree(rtrees, file = '../outputs/rand_phylome.txt',tree.names = TRUE)
+
