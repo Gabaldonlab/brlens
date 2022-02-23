@@ -35,7 +35,13 @@ x <- 0:400/100
 plot(x, dgamma(x, 24, 10), type = 'l')
 lines(x, dgamma(x, 2, 2))
 
-plot(x, dgamma(x, 23, 12) + dgamma(x, 1, 3), type = 'l')
+plot(x, dgamma(x, 23, 12) + dgamma(x, 1, 3), type = 'l', ylab = 'density',
+     xlab = 'rate')
+
+ggplot() +
+  geom_line(aes(x, dgamma(x, 23, 12) + dgamma(x, 1, 3))) +
+  ylab('density') +
+  xlab('rate')
 
 # Reference tree ----
 t_text <- '(((A:0.7,B:0.6):1.3,(C:0.3,D:0.5):2):1.2,E:3);'

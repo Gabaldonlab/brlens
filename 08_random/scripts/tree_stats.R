@@ -5,6 +5,7 @@
 # Pakcages loading ----
 library(ggpubr)
 library(ggplot2)
+library(tidyr)
 theme_set(theme_bw())
 
 # Functions definitions ----
@@ -43,15 +44,26 @@ spdat$root_dist <- spdat$dist / root_ref[spdat$id, 'med']
 spdat$st_dist <- spdat$dist / st_ref[spdat$id, 'med']
 spdat$s2s_dist <- spdat$dist / s2s_ref[spdat$id, 'dist']
 
-norm_fact <- rbls_ref[spdat$id, 'sum_brl'] /
+norm_fact1 <- rbls_ref[spdat$id, 'sum_brl'] /
   median(rbls_ref$sum_brl) + rbls_ref[spdat$id, 'twdth'] /
   median(rbls_ref[, 'twdth'])
-norm_fact <- rbls_ref[spdat$id, 'sum_brl'] /
-  (median(rbls_ref$sum_brl) * sd(rbls_ref$sum_brl))
-# norm_fact <- rbls_ref[spdat$id, 'twdth'] /
-#   (median(rbls_ref$twdth) * sd(rbls_ref$twdth))
+norm_fact2 <- rbls_ref[spdat$id, 'sum_brl'] /
+  (median(rbls_ref$sum_brl))
+norm_fact3 <- rbls_ref[spdat$id, 'med_brl'] / median(rbls_ref$med_brl)
 
-spdat$brls <- spdat$dist / norm_fact
+spdat$brls1 <- spdat$dist / norm_fact1
+spdat$brls2 <- spdat$dist / norm_fact2
+spdat$brls3 <- spdat$dist / norm_fact3
+
+spdatg <- gather(spdat[, -c(2, 3)], value = 'value',
+                 key = 'key', -c(id, species_to))
+
+apply(spdat[-c(1:3, 5)], 2, quantile)
+
+ggplot(spdatg, aes(x = value, color = species_to)) +
+  geom_density() +
+  facet_wrap(~key, scales = 'free_y', shrink = TRUE) +
+  xlim(0, 10)
 
 a <- ggplot(spdat, aes(x = dist, col = species_to)) +
   geom_density()
@@ -65,10 +77,27 @@ c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
   xlab('ndist with mrca to tip pairs median')
 d <- ggplot(spdat, aes(x = brls, col = species_to)) +
   geom_density() +
-  xlim(0, 75) +
+  xlim(0, 10) +
   xlab('ndist with standardized brlens sum and width')
 
-ggarrange(a, b, c, d, common.legend = TRUE)
+ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv')
+
+a <- ggplot(spdat, aes(x = dist, col = species_to)) +
+  geom_boxplot()
+b <- ggplot(spdat, aes(x = root_dist, col = species_to)) +
+  geom_boxplot() +
+  xlim(0, 2.5) +
+  xlab('ndist with root to tip median')
+c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
+  geom_boxplot() +
+  xlim(0, 4) +
+  xlab('ndist with mrca to tip pairs median')
+d <- ggplot(spdat, aes(x = brls, col = species_to)) +
+  geom_boxplot() +
+  xlim(0, 10) +
+  xlab('ndist with standardized brlens sum and width')
+
+ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv')
 
 med.df <- data.frame(apply(spdat[, c(4:13, 18)], 2, FUN = median_sp))
 med.df <- cbind('species_to' = row.names(med.df), med.df)

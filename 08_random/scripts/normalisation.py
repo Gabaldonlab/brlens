@@ -168,6 +168,7 @@ def rbls_ref(tree, tid):
     brls = [x.dist for x in tree.traverse()]
     twdth = tree.get_farthest_leaf()[1]
 
-    rstats = {'id': tid, 'sum_brl': sum(brls), 'twdth': twdth}
+    rstats = {'id': tid, 'sum_brl': sum(brls), 'med_brl': np.median(brls),
+              'twdth': twdth}
 
     return rstats
