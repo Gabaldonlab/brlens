@@ -75,12 +75,12 @@ c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
   geom_density() +
   xlim(0, 4) +
   xlab('ndist with mrca to tip pairs median')
-d <- ggplot(spdat, aes(x = brls, col = species_to)) +
+d <- ggplot(spdat, aes(x = brls3, col = species_to)) +
   geom_density() +
-  xlim(0, 10) +
-  xlab('ndist with standardized brlens sum and width')
+  xlim(0, 8) +
+  xlab('ndist with brlens median and width')
 
-ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv')
+ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv', legend = 'bottom')
 
 a <- ggplot(spdat, aes(x = dist, col = species_to)) +
   geom_boxplot()
@@ -92,7 +92,7 @@ c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
   geom_boxplot() +
   xlim(0, 4) +
   xlab('ndist with mrca to tip pairs median')
-d <- ggplot(spdat, aes(x = brls, col = species_to)) +
+d <- ggplot(spdat, aes(x = brls1, col = species_to)) +
   geom_boxplot() +
   xlim(0, 10) +
   xlab('ndist with standardized brlens sum and width')
