@@ -51,6 +51,19 @@ norm_fact2 <- rbls_ref[spdat$id, 'sum_brl'] /
   (median(rbls_ref$sum_brl))
 norm_fact3 <- rbls_ref[spdat$id, 'med_brl'] / median(rbls_ref$med_brl)
 
+x <- 0:400/100
+rp <- ggplot() +
+  geom_line(aes(x, dgamma(x, 23, 12) + dgamma(x, 1, 3))) +
+  ylab('density') +
+  xlab('rate')
+
+np <- ggplot() +
+  geom_density(aes(x = norm_fact3)) +
+  xlab('Median of branches length normalisation factor')
+
+jpeg('')
+ggarrange(rp, np, align = 'hv')
+
 spdat$brls1 <- spdat$dist / norm_fact1
 spdat$brls2 <- spdat$dist / norm_fact2
 spdat$brls3 <- spdat$dist / norm_fact3
