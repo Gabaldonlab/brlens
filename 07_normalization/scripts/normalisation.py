@@ -19,7 +19,7 @@ import statistics as st
 
 
 # Definitions ----
-def subtree_tt_ref(tree, tid):
+def subtree_tt_ref(tree, tid='sp'):
     '''
     Subtree to tip distance statistics
 
@@ -30,13 +30,7 @@ def subtree_tt_ref(tree, tid):
 
     Args:
         tree (Phylotree): phylome tree
-    # rmean = np.mean(rdist)
-    # rmed = np.median(rdist)
-    # rskew = stats.skew(rdist)
-    # rkurt = stats.kurtosis(rdist)
-    # rsd = st.stdev(rdist)
-    #
-    # rwidth = sum(rdist)
+
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
 
@@ -80,7 +74,7 @@ def subtree_tt_ref(tree, tid):
     return rstats
 
 
-def mrca_tt_ref(tree, tid):
+def mrca_tt_ref(tree, tid='sp'):
     '''
     MRCA node to tip distance statistics
 
@@ -125,7 +119,7 @@ def mrca_tt_ref(tree, tid):
     return rstats
 
 
-def root_tt_ref(tree, tid):
+def root_tt_ref(tree, tid='sp'):
     '''
     Root to tip distance statistics
 
@@ -155,15 +149,13 @@ def root_tt_ref(tree, tid):
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rbs = sum(distl) / twdth
-
     rstats = {'id': tid, 'twdth': twdth, 'mean': mean, 'med': med,
-              'skew': skew, 'kurt': kurt, 'sd': sd, 'rbs': rbs}
+              'skew': skew, 'kurt': kurt, 'sd': sd}
 
     return rstats
 
 
-def rbls_ref(tree, tid):
+def rbls_ref(tree, tid='sp'):
     brls = [x.dist for x in tree.traverse()]
     twdth = tree.get_farthest_leaf()[1]
 

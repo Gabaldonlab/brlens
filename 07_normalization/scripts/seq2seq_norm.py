@@ -20,7 +20,7 @@ from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
-from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref
+from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref, rbls_ref
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -81,7 +81,7 @@ def get_events(tree, leaf, seqfrom):
     speciation and duplication events between both sequences (leaf and
     seqfrom).
 
-    Args:
+    Args:rbls_ref
         tree (PhyloTree): ete3 PhyloTree object with a get_species_tag function
         leaf (str): sequence name of the leaf.
         seqfrom (str): name of the reference sequence.
@@ -114,8 +114,8 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict,
-              st_ref, mrca_ref, root_ref):
+def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, st_ref, mrca_ref,
+              root_ref, rbls_r):
     '''
     Retrieves distances between pairs of sequences
 
@@ -129,7 +129,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict,
       to_seq (char): string with the to leaf name
       seed_id (char): name of the seed sequence
       phylome_id (char): code of the phylome in PhylomeDB
-      prot_dict (dictionary): contains the protein id linked to the tree
 
     Returns:
       dict: main features and distances of the tree
@@ -145,34 +144,26 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, prot_dict,
     leafdistd = dict()
     leafdistd['id'] = phylome_id
     leafdistd['tree'] = seed_id
-    leafdistd['prot'] = prot_dict.get(seed_id, 'NA')
     leafdistd['from'] = from_seq
     leafdistd['from_sp'] = get_species_tag(from_seq)
     leafdistd['to'] = to_seq
     leafdistd['to_sp'] = get_species_tag(to_seq)
-    leafdistd['dist'] = dist
-    leafdistd['dist_norm_st'] = dist / st_ref['med']
-    leafdistd['st_median'] = st_ref['med']
-    leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
-    leafdistd['mrca_median'] = mrca_ref['med']
-    leafdistd['dist_norm_root'] = dist / root_ref['med']
-    leafdistd['root_median'] = root_ref['med']
-    leafdistd['dist_norm_width'] = dist / root_ref['twdth']
-    leafdistd['root_median'] = root_ref['twdth']
-    leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
-    leafdistd['rbls'] = root_ref['rwdth']
     leafdistd['sp'] = events['S']
     leafdistd['dupl'] = events['D']
     leafdistd['mrca_type'] = events['MRCA']
+    leafdistd['dist'] = dist
+    leafdistd['st_median'] = st_ref['med']
+    leafdistd['mrca_median'] = mrca_ref['med']
+    leafdistd['root_median'] = root_ref['med']
+    leafdistd['tree_width'] = root_ref['twdth']
+    leafdistd['sum_brl'] = rbls_r['sum_brl']
+    leafdistd['med_brl'] = rbls_r['med_brl']
 
     return leafdistd
 
 
-def get_sp_dist(tree, from_seq, to_seq):
+def get_sp_dist(tree, from_seq, to_seq, mrca_ref, root_ref, rbls_r):
     tree.get_descendant_evol_events()
-
-    mrca_ref = mrca_tt_ref(tree)
-    root_ref = root_tt_ref(tree)
 
     dist = tree.get_distance(from_seq, to_seq)
 
@@ -180,24 +171,20 @@ def get_sp_dist(tree, from_seq, to_seq):
     leafdistd['from_sp'] = from_seq
     leafdistd['to_sp'] = to_seq
     leafdistd['dist'] = dist
-    leafdistd['dist_norm_mrca'] = dist / mrca_ref['med']
     leafdistd['mrca_median'] = mrca_ref['med']
-    leafdistd['dist_norm_root'] = dist / root_ref['med']
     leafdistd['root_median'] = root_ref['med']
-    leafdistd['dist_norm_width'] = dist / root_ref['twdth']
-    leafdistd['root_median'] = root_ref['twdth']
-    leafdistd['dist_norm_rbls'] = dist / root_ref['rwdth']
-    leafdistd['rbls'] = root_ref['rwdth']
+    leafdistd['tree_width'] = root_ref['twdth']
+    leafdistd['sum_brl'] = rbls_r['sum_brl']
+    leafdistd['med_brl'] = rbls_r['med_brl']
 
     return leafdistd
 
 
 class dist_process(Process):
-    def __init__(self, tree_row, phylome_id, prot_dict, olist):
+    def __init__(self, tree_row, phylome_id, olist):
         Process.__init__(self)
         self.tree_row = tree_row
         self.phylome_id = phylome_id
-        self.prot_dict = prot_dict
         self.olist = olist
 
     def run(self):
@@ -211,19 +198,20 @@ class dist_process(Process):
 
             tnames = t.get_leaf_names()
 
-            root(tree, root_dict[int(self.phylome_id)])
-            tree.get_descendant_evol_events()
+            t.set_outgroup(t.get_midpoint_outgroup())
+            t.get_descendant_evol_events()
 
-            st_ref = subtree_tt_ref(tree)
-            mrca_ref = mrca_tt_ref(tree)
-            root_ref = root_tt_ref(tree)
+            st_ref = subtree_tt_ref(t, tree[0])
+            mrca_ref = mrca_tt_ref(t, tree[0])
+            root_ref = root_tt_ref(t, tree[0])
+            rbls_r = rbls_ref(t, tree[0])
 
             for i, from_seq in enumerate(tnames):
                 for to_seq in tnames[i + 1:]:
                     if from_seq != to_seq:
                         leaf_dist = get_dists(t, from_seq, to_seq, tree[0],
-                                              self.phylome_id, self.prot_dict,
-                                              st_ref, mrca_ref, root_ref)
+                                              self.phylome_id, st_ref,
+                                              mrca_ref, root_ref, rbls_r)
                         if leaf_dist is not None:
                             self.olist.append(leaf_dist)
 
@@ -240,10 +228,6 @@ def main():
     parser.add_option('-o', '--output', dest='odir',
                       help='Output directory',
                       metavar='<path/to/output>')
-    parser.add_option('-p', '--prot', dest='prot',
-                      help='File with protein codes',
-                      metavar='<path/to/file.txt>',
-                      default=None)
     parser.add_option('-c', '--cpu', dest='cpus',
                       help='File with protein codes',
                       metavar='<path/to/file.txt>')
@@ -255,14 +239,12 @@ def main():
 
     if options.default:
         ifile = '../data/0435_best_trees.txt'
-        prots = '../data/0435_all_protein_names.txt'
         odir = '../outputs'
         cpus = 6
         sp_tree = False
     else:
         ifile = options.ifile
         odir = options.odir
-        prots = options.prot
         cpus = int(options.cpus)
         sp_tree = options.sp_tree
 
@@ -275,14 +257,20 @@ def main():
         if not file_exists(dist_fn):
             create_folder(odir)
             t = ete3.PhyloTree(ifile)
+            t.get_descendant_evol_events()
 
             tnames = t.get_leaf_names()
+
+            mrca_ref = mrca_tt_ref(t)
+            root_ref = root_tt_ref(t)
+            rbls_r = rbls_ref(t)
 
             olist = list()
             for i, from_seq in enumerate(tnames):
                 for to_seq in tnames[i + 1:]:
                     if from_seq != to_seq:
-                        olist.append(get_sp_dist(t, from_seq, to_seq))
+                        olist.append(get_sp_dist(t, from_seq, to_seq, mrca_ref,
+                                                 root_ref, rbls_r))
 
             odf = pd.DataFrame(olist)
             odf.to_csv(dist_fn, index=False)
@@ -295,7 +283,6 @@ def main():
             create_folder(odir)
 
             trees = open(ifile, 'r').read().split('\n')
-            prot_dict = csv_to_dict(prots, '\t')
 
             with Manager() as manager:
                 olist = manager.list()
@@ -311,8 +298,7 @@ def main():
                                         processes.remove(process)
                                         done = True
 
-                        process = dist_process(tree_row, phylome_id,
-                                               prot_dict, olist)
+                        process = dist_process(tree_row, phylome_id, olist)
                         processes.append(process)
                         process.start()
 

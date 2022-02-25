@@ -32,13 +32,14 @@ spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == 'YEAST' |
 
 spdat$species_to <- apply(spdat, 1, get_other, ref = 'YEAST')
 
-med.df <- data.frame(apply(spdat[, c(8:17, 20)], 2, FUN = median_sp))
-med.df <- cbind('species_to' = row.names(med.df), med.df)
-
 s2s_med_dist <- aggregate(spdat, by = list(spdat$tree), FUN = median)[, c(1, 9)]
 row.names(s2s_med_dist) <- s2s_med_dist[, 1]
 
 spdat$dist_norm_s2s <- spdat$dist / s2s_med_dist[spdat$tree, 2]
+
+med.df <- data.frame(apply(spdat[, c(8:17, 20)], 2, FUN = median_sp))
+med.df <- cbind('species_to' = row.names(med.df), med.df)
+
 
 # Basic descriptive plots
 dist.dens <- ggplot(spdat, aes(dist, col = species_to, fill = species_to)) +
@@ -294,6 +295,22 @@ yeast_sort_sptree <- phy5_spdat[order(phy5_spdat$dist_norm_mrca),
 yeast_sort_comp <- cbind('Phylome' = yeast_sort,
                          'Species tree' = yeast_sort_sptree,
                          'Equal' = yeast_sort == yeast_sort_sptree)
+
+sp_phylome <- merge(med.df, phy5_spdat[, -c(1:2)], by = 'species_to',
+      suffixes = c('.species', '.phylome'))
+
+str(sp_phylome)
+
+for (d in names(sp_phylome)[grep('.phylome', names(sp_phylome))]) {
+  a <- ggplot(sp_phylome, aes(x = dist.species, get(d), col = species_to)) +
+    geom_point() +
+    ylab(d)
+  print(a)
+}
+
+ggplot(sp_phylome, aes(x = dist.species, dist_norm_mrca.species,
+                       col = species_to)) +
+  geom_point()
 
 write.csv(yeast_sort_comp, file = '../outputs/0005_sort_comp.csv')
 
