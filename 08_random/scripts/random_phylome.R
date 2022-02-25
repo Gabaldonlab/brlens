@@ -6,6 +6,8 @@
 library(ggtree)
 library(treeio)
 library(ape)
+library(ggplot2)
+theme_set(theme_bw())
 
 # Definitions ----
 # Tree set definitions
@@ -38,7 +40,7 @@ lines(x, dgamma(x, 2, 2))
 plot(x, dgamma(x, 23, 12) + dgamma(x, 1, 3), type = 'l', ylab = 'density',
      xlab = 'rate')
 
-ggplot() +
+rp <- ggplot() +
   geom_line(aes(x, dgamma(x, 23, 12) + dgamma(x, 1, 3))) +
   ylab('density') +
   xlab('rate')
@@ -52,14 +54,17 @@ t_labs <- c('tau[A]', 'tau[B]', 'tau[C]', 'tau[D]', 'tau[E]', 'R',
 
 ggtree(t) +
   geom_tiplab() +
-  geom_label2(aes(x = branch, label = t_labs), parse = TRUE)
+  geom_label2(aes(x = branch, label = t_labs), parse = TRUE) +
+  labs(title = 'Reference tree') + rp
+  
 
 # Random trees ----
 rtrees <- rtreeset(t, n = 1000, mean_rate = 1)
 
 # plot densitrees
-ggdensitree(sample(rtrees, 100), alpha = 0.3)
+ggdensitree(sample(rtrees, 100), alpha = 0.3, align.tips = TRUE) +
+  geom_tiplab(align = TRUE) + a
 
 # Write trees ----
-write.tree(rtrees, file = '../outputs/rand_phylome.txt',tree.names = TRUE)
+write.tree(rtrees, file = '../outputs/rand_phylome.txt')
 
