@@ -19,7 +19,7 @@ import statistics as st
 
 
 # Definitions ----
-def subtree_tt_ref(tree):
+def subtree_tt_ref(tree, tid):
     '''
     Subtree to tip distance statistics
 
@@ -30,7 +30,13 @@ def subtree_tt_ref(tree):
 
     Args:
         tree (Phylotree): phylome tree
-
+    # rmean = np.mean(rdist)
+    # rmed = np.median(rdist)
+    # rskew = stats.skew(rdist)
+    # rkurt = stats.kurtosis(rdist)
+    # rsd = st.stdev(rdist)
+    #
+    # rwidth = sum(rdist)
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
 
@@ -41,7 +47,7 @@ def subtree_tt_ref(tree):
     mphsptrees = dict()
     mphgtrees = dict()
     for i, subtree in enumerate(tree.traverse()):
-        sps = [sp.split('_')[1] for sp in subtree.get_leaf_names()]
+        sps = [sp for sp in subtree.get_leaf_names()]
         if (len(sps) == len(set(sps)) and len(sps) > 10 and
                 subtree.get_farthest_leaf()[1] != 0):
             mphsptrees[len(sps)] = subtree
@@ -68,13 +74,13 @@ def subtree_tt_ref(tree):
     kurt = stats.kurtosis(rtldist)
     sd = st.stdev(rtldist)
 
-    rstats = {'wdth': wdth, 'mean': mean, 'med': med,
+    rstats = {'id': tid, 'wdth': wdth, 'mean': mean, 'med': med,
               'skew': skew, 'kurt': kurt, 'sd': sd}
 
     return rstats
 
 
-def mrca_tt_ref(tree):
+def mrca_tt_ref(tree, tid):
     '''
     MRCA node to tip distance statistics
 
@@ -113,13 +119,13 @@ def mrca_tt_ref(tree):
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rstats = {'mean': mean, 'med': med, 'skew': skew,
+    rstats = {'id': tid, 'mean': mean, 'med': med, 'skew': skew,
               'kurt': kurt, 'sd': sd}
 
     return rstats
 
 
-def root_tt_ref(tree):
+def root_tt_ref(tree, tid):
     '''
     Root to tip distance statistics
 
@@ -137,32 +143,31 @@ def root_tt_ref(tree):
         Exception: description
     '''
 
-    twdth = tree.get_farthest_leaf()[1]
-
     distl = list()
-    rdist = list()
 
     for leaf in tree.get_leaf_names():
         distl.append(tree.get_distance(leaf))
-        # rdist.append(tree.get_distance(leaf) / twdth)
 
+    twdth = tree.get_farthest_leaf()[1]
     mean = np.mean(distl)
     med = np.median(distl)
     skew = stats.skew(distl)
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    # rmean = np.mean(rdist)
-    # rmed = np.median(rdist)
-    # rskew = stats.skew(rdist)
-    # rkurt = stats.kurtosis(rdist)
-    # rsd = st.stdev(rdist)
-    #
-    # rwidth = sum(rdist)
+    rbs = sum(distl) / twdth
 
-    rstats = {'twdth': twdth, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd}
-              # 'rmean': rmean, 'rmed': rmed,
-              # 'rskew': rskew, 'rkurt': rkurt, 'rsd': rsd, 'rwdth': rwidth}
+    rstats = {'id': tid, 'twdth': twdth, 'mean': mean, 'med': med,
+              'skew': skew, 'kurt': kurt, 'sd': sd, 'rbs': rbs}
+
+    return rstats
+
+
+def rbls_ref(tree, tid):
+    brls = [x.dist for x in tree.traverse()]
+    twdth = tree.get_farthest_leaf()[1]
+
+    rstats = {'id': tid, 'sum_brl': sum(brls), 'med_brl': np.median(brls),
+              'twdth': twdth}
 
     return rstats

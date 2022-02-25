@@ -158,8 +158,7 @@ def root_tt_ref(tree, tid):
     rbs = sum(distl) / twdth
 
     rstats = {'id': tid, 'twdth': twdth, 'mean': mean, 'med': med,
-              'skew': skew,
-              'kurt': kurt, 'sd': sd, 'rbs': rbs}
+              'skew': skew, 'kurt': kurt, 'sd': sd, 'rbs': rbs}
 
     return rstats
 
