@@ -55,6 +55,17 @@ spdat$brls1 <- spdat$dist / norm_fact1
 spdat$brls2 <- spdat$dist / norm_fact2
 spdat$brls3 <- spdat$dist / norm_fact3
 
+x <- 0:400/100
+a <- ggplot() +
+  geom_line(aes(x, dgamma(x, 23, 12) + dgamma(x, 1, 3))) +
+  ylab('density') +
+  xlab('rate')
+b <- ggplot() +
+  geom_density(aes(x = norm_fact3)) +
+  xlab('Median of branches length normalisation factor')
+
+rate_norm <- ggarrange(a, b, align = 'h')
+
 spdatg <- gather(spdat[, -c(2, 3)], value = 'value',
                  key = 'key', -c(id, species_to))
 
@@ -230,12 +241,3 @@ a <- med.df[, c(2, 3, 5, 7, 9, 10, 12)] - sp_dat[1:4, ]$dist
 apply(a[-4, ], 2, sum)
 
 write.csv(a, file = '../outputs/norm_tau_differences.csv')
-
-
-normsampl <- sample(c(rgamma(200, 23, 12), rgamma(200, 1, 3)), 200)
-
-samp <- sample(c(rgamma(200, 23, 12) + 4, rgamma(200, 1, 3) + 4), 200)
-
-ggplot() +
-  geom_density(aes(x = samp / normsampl)) +
-  xlim(0, 7)

@@ -91,7 +91,7 @@ for (i in 1:dim(sps)[1]) {
 }
 # dev.off()
 
-stats_df <- data.frame(a[, , 1:4])
+stats_df <- data.frame(a[, , ])
 stats_df <- cbind(sps, stats_df)
 stats_df <- na.omit(stats_df)
 
