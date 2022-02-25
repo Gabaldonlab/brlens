@@ -60,8 +60,6 @@ rp <- ggplot() +
 np <- ggplot() +
   geom_density(aes(x = norm_fact3)) +
   xlab('Median of branches length normalisation factor')
-
-jpeg('')
 ggarrange(rp, np, align = 'hv')
 
 spdat$brls1 <- spdat$dist / norm_fact1
