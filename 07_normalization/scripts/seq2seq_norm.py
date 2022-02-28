@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 '''
-00_script.py -- Title of the script
+seq2seq_norm.py -- Sequence to sequence distances and normalisation
 
-Brief description
+The script gets the sequence to sequence distances and calculates the
+normalisation factors. It does not calculate the normalised distance.
 
-Requirements:
+Requirements: ete3, pandas, normalisation
 
-Written by Name <mail@mail.com>
-Month 2022
+Written by Moisès Bernabeu <moigil.bernabeu@gmail.com>
+February 2022
 '''
 
 # Import libraries ----
 import sys
 import os
 from optparse import OptionParser
-from rooted_phylomes import ROOTED_PHYLOMES as root_dict
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
@@ -135,7 +135,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, st_ref, mrca_ref,
 
     Raises:
       Exception: description
-
     '''
 
     dist = tree.get_distance(from_seq, to_seq)
@@ -163,6 +162,25 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, st_ref, mrca_ref,
 
 
 def get_sp_dist(tree, from_seq, to_seq, mrca_ref, root_ref, rbls_r):
+    '''
+    Retrieves distances between pairs of sequences
+
+    The function gets a set of two sequences and calculates the distances
+    between them and associates the tree with some information. Retrieves
+    a dictionary with the main features and distances of the tree.
+
+    Args:
+      tree (PhyloTree): phylogenetic tree imported with ete3
+      from_seq (char): string with the from leaf name
+      to_seq (char): string with the to leaf name
+
+    Returns:
+      dict: main features and distances of the tree
+
+    Raises:
+      Exception: description
+    '''
+
     tree.get_descendant_evol_events()
 
     dist = tree.get_distance(from_seq, to_seq)

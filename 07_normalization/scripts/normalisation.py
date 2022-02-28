@@ -30,6 +30,7 @@ def subtree_tt_ref(tree, tid='sp'):
 
     Args:
         tree (Phylotree): phylome tree
+        tid (string): tree id
 
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
@@ -85,6 +86,7 @@ def mrca_tt_ref(tree, tid='sp'):
 
     Args:
         tree (Phylotree): phylome tree
+        tid (string): tree id
 
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
@@ -129,6 +131,7 @@ def root_tt_ref(tree, tid='sp'):
 
     Args:
         tree (Phylotree): phylome tree
+        tid (string): tree id
 
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
@@ -156,6 +159,25 @@ def root_tt_ref(tree, tid='sp'):
 
 
 def rbls_ref(tree, tid='sp'):
+    '''
+    Raw branch lengths sum and median
+
+    The function gets the list of the tree branches lengths, then calculates
+    its sum and median. Returns a dictionary containing this information linked
+    to a tree id and the tree width.
+
+    Args:
+        tree (Phylotree): phylome tree
+        tid (string): tree id
+
+    Returns:
+        dict: dictionary with the tree width, and the branch lengths
+        median and sum.
+
+    Raises:
+        Exception: description
+    '''
+
     brls = [x.dist for x in tree.traverse()]
     twdth = tree.get_farthest_leaf()[1]
 
