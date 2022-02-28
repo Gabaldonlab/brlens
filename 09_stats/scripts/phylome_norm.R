@@ -24,8 +24,8 @@ median_sp <- function(x, df) {
 }
 
 # Normalised distances dataframe generation ----
-phylome <- '0076'
-refsp <- 'HUMAN'
+phylome <- '0005'
+refsp <- 'YEAST'
 
 dat <- read.csv(paste0('../data/', phylome, '_dist_noh.csv'))
 spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == refsp | 

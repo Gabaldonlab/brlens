@@ -60,7 +60,7 @@ rp <- ggplot() +
 np <- ggplot() +
   geom_density(aes(x = norm_fact3)) +
   xlab('Median of branches length normalisation factor')
-ggarrange(rp, np, align = 'hv')
+ggarrange(rp, np, align = 'hv', labels = 'auto')
 
 spdat$brls1 <- spdat$dist / norm_fact1
 spdat$brls2 <- spdat$dist / norm_fact2
@@ -99,10 +99,11 @@ c <- ggplot(spdat, aes(x = mrca_dist, col = species_to)) +
   xlab('ndist with mrca to tip pairs median')
 d <- ggplot(spdat, aes(x = brls3, col = species_to)) +
   geom_density() +
-  xlim(0, 8) +
+  xlim(0, 10) +
   xlab('ndist with brlens median and width')
 
-ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv', legend = 'bottom')
+ggarrange(a, b, c, d, common.legend = TRUE, align = 'hv', legend = 'bottom',
+          labels = 'auto')
 
 a <- ggplot(spdat, aes(x = dist, col = species_to)) +
   geom_boxplot()

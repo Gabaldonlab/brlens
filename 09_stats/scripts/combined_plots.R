@@ -58,4 +58,4 @@ c <- ggplot(ye_sp_vs_phy, aes(dist_sp, mrca_ndist, colour = group)) +
 d <- ggplot(hu_sp_vs_phy, aes(dist_sp, mrca_ndist, colour = group)) +
   geom_point(show.legend = FALSE)
 
-ggarrange(a, b, c, d, align = 'hv')
+ggarrange(a, b, c, d, align = 'hv', labels = 'auto')
