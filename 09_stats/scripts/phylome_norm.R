@@ -46,6 +46,15 @@ for (i in 1:length(oldvarnms)) {
 
 distdfg <- gather(distdf, key = 'distance', value = 'value', -sp_to)
 
+# write.csv(distdf, file = paste0('../outputs/', phylome, '_distdf.csv'))
+
+# Importing written files ----
+distdf <- read.csv(paste0('../outputs/', phylome, '_distdf.csv'),
+                   row.names = 1)
+sp_vs_phy <- read.csv(paste0('../outputs/', phylome, '_sp_vs_phylome.csv'),
+                      row.names = 1)
+sp_vs_phy$group <- factor(sp_vs_phy$group)
+
 # Importing species tree data ----
 spref <- read.csv(paste0('../data/', phylome, '_sptree_sptree_dist.csv'))
 spref <- spref[which(spref$from_sp == refsp | spref$to_sp == refsp), ]
@@ -56,40 +65,34 @@ phydists <- data.frame(apply(distdf[, -1], 2,
                              FUN = median_sp, df = distdf)[spdists$sp_to, ])
 
 sist_group <- read.csv(paste0('../data/', phylome, '_sister_group.csv'),
-                       row.names = 1)
+                       row.names = 1, stringsAsFactors = TRUE)
 
 sp_vs_phy <- cbind(spdists, phydists,
-                   'group' = factor(sist_group[row.names(phydists), ]))
+                   'group' = factor(sist_group[row.names(phydists),
+                                               'mphy_sister']))
 
-# Writing files ----
-write.csv(distdf, file = paste0('../outputs/', phylome, '_distdf.csv'))
-write.csv(sp_vs_phy, file = paste0('../outputs/', phylome, '_sp_vs_phylome.csv'))
+# write.csv(sp_vs_phy, file = paste0('../outputs/', phylome, '_sp_vs_phylome.csv'))
 
 # Plots ----
-distdf <- read.csv(paste0('../outputs/', phylome, '_distdf.csv'),
-                   row.names = 1)
-sp_vs_phy <- read.csv(paste0('../outputs/', phylome, '_sp_vs_phylome.csv'),
-                      row.names = 1)
-sp_vs_phy$group <- factor(sp_vs_phy$group)
 
-pdf(paste0('../outputs/', phylome, '_all_dens.pdf'),
-    width = 6, height = 4)
+# pdf(paste0('../outputs/', phylome, '_all_dens.pdf'),
+#     width = 6, height = 4)
 ggplot(distdf, aes(x = raw_dist, colour = sp_to)) +
   geom_density(show.legend = FALSE) +
   xlim(0, 5) +
   labs(title = paste0(refsp, ' to species'))
-dev.off()
+# dev.off()
 
-pdf(paste0('../outputs/', phylome, '_all_norm_dens.pdf'),
-    width = 6, height = 4)
+# pdf(paste0('../outputs/', phylome, '_all_norm_dens.pdf'),
+#     width = 6, height = 4)
 ggplot(distdf, aes(x = brl_ndist, colour = sp_to)) +
   geom_density(show.legend = FALSE) +
   xlim(0, 7) +
   labs(title = paste0(refsp, ' to species'))
-dev.off()
+# dev.off()
 
-pdf(paste0('../outputs/', phylome, '_sp_vs_phylome.pdf'),
-    width = 5.5, height = 5)
+# pdf(paste0('../outputs/', phylome, '_sp_vs_phylome.pdf'),
+#     width = 5.5, height = 5)
 for (varnm in names(sp_vs_phy)[-c(1:2, 9)]) {
   p <- ggplot(sp_vs_phy, aes(x = dist_sp, y = get(varnm), colour = group)) +
     geom_point() +
@@ -98,10 +101,10 @@ for (varnm in names(sp_vs_phy)[-c(1:2, 9)]) {
     labs(title = paste0(refsp, ' to species'))
   print(p)
 }
-dev.off()
+# dev.off()
 
-pdf(paste0('../outputs/', phylome, '_dist_dens.pdf'),
-    width = 10, height = 6)
+# pdf(paste0('../outputs/', phylome, '_dist_dens.pdf'),
+#     width = 10, height = 6)
 for (varnm in names(distdf)[-1]) {
   p <- ggplot(distdf, aes(x = get(varnm), colour = sp_to, fill = sp_to)) +
     geom_density(show.legend = FALSE, alpha = 0.6) +
@@ -110,4 +113,4 @@ for (varnm in names(distdf)[-1]) {
     facet_wrap(~sp_to, scales = 'free')
   print(p)
 }
-dev.off()
+# dev.off()

@@ -6,6 +6,10 @@
 library(ggplot2)
 library(ggpubr)
 library(tidyr)
+library(ggrepel)
+
+library(ggtree)
+library(treeio)
 
 theme_set(theme_bw())
 
@@ -59,3 +63,33 @@ d <- ggplot(hu_sp_vs_phy, aes(dist_sp, mrca_ndist, colour = group)) +
   geom_point(show.legend = FALSE)
 
 ggarrange(a, b, c, d, align = 'hv', labels = 'auto')
+
+b +
+  geom_label_repel(aes(label = sp_to), min.segment.length = 0) +
+  xlim(1.5, 2.5) +
+  ylim(2, 2.5)
+
+plot(hu_sp_vs_phy$dist_sp, hu_sp_vs_phy$brl_ndist, type = 'n')
+text(hu_sp_vs_phy$dist_sp, hu_sp_vs_phy$brl_ndist, labels = hu_sp_vs_phy$sp_to)
+
+hu.t <- read.newick('../../07_normalization/data/0076_sptree.nwk',
+                    node.label = 'support')
+hu.tp <- ggtree(hu.t) %<+% hu_sp_vs_phy +
+  geom_tiplab(aes(fill = group), geom = 'label', size = 2) +
+  # geom_nodelab(aes(label = support, x = branch)) +
+  geom_nodepoint(aes(colour = cut(support, 3), x = branch)) +
+  scale_color_grey(na.value = NA, start = 0.8, end = 0) +
+  xlim(c(0, 7.6))
+hu.tp
+
+ye.t <- read.newick('../../07_normalization/data/0005_sptree.nwk',
+                    node.label = 'support')
+ye.tp <- ggtree(ye.t) %<+% ye_sp_vs_phy +
+  geom_tiplab(aes(fill = group), geom = 'label', size = 3) +
+  # geom_nodelab(aes(label = support, x = branch)) +
+  geom_nodepoint(aes(colour = cut(support, 3), x = branch)) +
+  scale_color_grey(na.value = NA, start = 0.8, end = 0) +
+  xlim(c(0, 2))
+ye.tp
+
+ye.tp + xlim(0, 3) + hu.tp + xlim(0, 8)
