@@ -325,6 +325,23 @@ def main():
 
                 # Writing output files
                 odf = pd.DataFrame(list(olist))
+
+                norm_fact = odf.groupby('tree').median()
+                meds = norm_fact.median(0)
+
+                odf['mrca_ndist'] = odf['dist'] / (odf['mrca_median'] /
+                                                   meds['mrca_median'])
+                odf['st_ndist'] = odf['dist'] / (odf['st_median'] /
+                                                 meds['st_median'])
+                odf['root_ndist'] = odf['dist'] / (odf['root_median'] /
+                                                   meds['root_median'])
+                odf['twdth_ndist'] = odf['dist'] / (odf['tree_width'] /
+                                                    meds['tree_width'])
+                odf['sbrl_ndist'] = odf['dist'] / (odf['sum_brl'] /
+                                                   meds['sum_brl'])
+                odf['brl_ndist'] = odf['dist'] / (odf['med_brl'] /
+                                                  meds['med_brl'])
+
                 odf.to_csv(dist_fn, index=False)
 
 
