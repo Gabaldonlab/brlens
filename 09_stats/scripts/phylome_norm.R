@@ -46,15 +46,6 @@ for (i in 1:length(oldvarnms)) {
 
 distdfg <- gather(distdf, key = 'distance', value = 'value', -sp_to)
 
-# write.csv(distdf, file = paste0('../outputs/', phylome, '_distdf.csv'))
-
-# Importing written files ----
-distdf <- read.csv(paste0('../outputs/', phylome, '_distdf.csv'),
-                   row.names = 1)
-sp_vs_phy <- read.csv(paste0('../outputs/', phylome, '_sp_vs_phylome.csv'),
-                      row.names = 1)
-sp_vs_phy$group <- factor(sp_vs_phy$group)
-
 # Importing species tree data ----
 spref <- read.csv(paste0('../data/', phylome, '_sptree_sptree_dist.csv'))
 spref <- spref[which(spref$from_sp == refsp | spref$to_sp == refsp), ]
@@ -71,7 +62,16 @@ sp_vs_phy <- cbind(spdists, phydists,
                    'group' = factor(sist_group[row.names(phydists),
                                                'mphy_sister']))
 
+# Writint files ----
 # write.csv(sp_vs_phy, file = paste0('../outputs/', phylome, '_sp_vs_phylome.csv'))
+# write.csv(distdf, file = paste0('../outputs/', phylome, '_distdf.csv'))
+
+# Importing written files ----
+distdf <- read.csv(paste0('../outputs/', phylome, '_distdf.csv'),
+                   row.names = 1)
+sp_vs_phy <- read.csv(paste0('../outputs/', phylome, '_sp_vs_phylome.csv'),
+                      row.names = 1)
+sp_vs_phy$group <- factor(sp_vs_phy$group)
 
 # Plots ----
 
