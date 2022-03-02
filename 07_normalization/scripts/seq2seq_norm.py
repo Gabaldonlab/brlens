@@ -248,7 +248,7 @@ def main():
                       metavar='<path/to/output>')
     parser.add_option('-c', '--cpu', dest='cpus',
                       help='File with protein codes',
-                      metavar='<path/to/file.txt>')
+                      metavar='<path/to/file.txt>', type='int')
     parser.add_option('-s', '--sp', dest='sp_tree',
                       help='This option only requires a tree, not ' +
                            'proteins file.',
@@ -256,14 +256,14 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.default:
-        ifile = '../data/0435_best_trees.txt'
+        ifile = '../data/0005_0.txt'
         odir = '../outputs'
-        cpus = 6
+        cpus = 4
         sp_tree = False
     else:
         ifile = options.ifile
         odir = options.odir
-        cpus = int(options.cpus)
+        cpus = options.cpus
         sp_tree = options.sp_tree
 
     phylome_id = ifile.rsplit('/', 1)[1].split('_', 1)[0]

@@ -24,8 +24,8 @@ median_sp <- function(x, df) {
 }
 
 # Normalised distances dataframe generation ----
-phylome <- '0005'
-refsp <- 'YEAST'
+phylome <- '0076'
+refsp <- 'HUMAN'
 
 dat <- read.csv(paste0('../data/', phylome, '_dist_noh.csv'))
 spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == refsp | 
@@ -59,8 +59,8 @@ sist_group <- read.csv(paste0('../data/', phylome, '_sister_group.csv'),
                        row.names = 1, stringsAsFactors = TRUE)
 
 sp_vs_phy <- cbind(spdists, phydists,
-                   'group' = factor(sist_group[row.names(phydists),
-                                               'mphy_sister']))
+                   'group' = sist_group[row.names(phydists),
+                                        'mphy_sister'])
 
 # Writint files ----
 # write.csv(sp_vs_phy, file = paste0('../outputs/', phylome, '_sp_vs_phylome.csv'))
