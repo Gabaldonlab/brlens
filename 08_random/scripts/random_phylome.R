@@ -7,6 +7,8 @@ library(ggtree)
 library(treeio)
 library(ape)
 library(ggplot2)
+library(gridExtra)
+
 theme_set(theme_bw())
 
 # Definitions ----
@@ -51,12 +53,30 @@ t <- read.tree(text = t_text)
 
 t_labs <- c('tau[A]', 'tau[B]', 'tau[C]', 'tau[D]', 'tau[E]', 'R',
             'tau[1]', 'tau[2]', 'tau[3]')
+l_labs <- c('l[A]', 'l[B]', 'l[C]', 'l[D]', 'l[E]', 'R',
+            'l[1]', 'l[2]', 'l[3]')
 
 ggtree(t) +
   geom_tiplab() +
   geom_label2(aes(x = branch, label = t_labs), parse = TRUE) +
-  labs(title = 'Reference tree') + rp
-  
+  labs(title = 'Species tree')
+
+ggtree(t) +
+  geom_tiplab() +
+  geom_label2(aes(x = branch, label = l_labs), parse = TRUE) +
+  labs(title = 'Gene')
+
+rp
+
+p <- c()
+for (i in 1:9) {
+  p[[i]] <- ggtree(rtrees[[i]]) +
+    geom_tiplab() +
+    geom_label2(aes(x = branch, label = l_labs), parse = TRUE) +
+    labs(title = paste0('GENE ', LETTERS[i], expression(paste0(' med(L[a])', LETTERS[i], '])'))), parse = TRUE)
+}
+
+do.call("grid.arrange", c(p, ncol=3))
 
 # Random trees ----
 rtrees <- rtreeset(t, n = 1000, mean_rate = 1)
