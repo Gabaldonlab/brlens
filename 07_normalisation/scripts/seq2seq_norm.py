@@ -20,7 +20,7 @@ from optparse import OptionParser
 import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
-from normalisation import subtree_tt_ref, mrca_tt_ref, root_tt_ref, rbls_ref
+from normalisation import mrca_tt_ref, rbls_ref
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -36,6 +36,47 @@ def get_species_tag(node):
         return node.split("_")[1]
     else:
         return node
+
+
+def annotate_lineages(tree, gnmdf):
+    for leaf in tree.get_leaves():
+        sp = list(leaf.get_species())[0]
+        kingdom = list(gnmdf['kingdom'][gnmdf['PhylomeDB'] == sp])[0]
+        leaf.add_feature('kingdom', kingdom)
+
+    return 0
+
+
+def ref_clades(tree, gnmdf):
+
+    annotate_lineages(tree, gnmdf)
+    tlno = len(tree.get_leaf_names())
+
+    mphysets = list()
+    for st in tree.traverse():
+        leaves = st.get_leaves()
+
+        kingdom = list()
+        for stleag in st.get_leaves():
+            kingdom.append(stleag.kingdom)
+
+        if len(set(kingdom)) == 1 and len(leaves) > 1 and len(leaves) != tlno:
+            mphy = dict()
+            mphy['node'] = st
+            mphy['seq_no'] = len(leaves)
+            mphy['kingdom'] = kingdom[0]
+            mphysets.append(mphy)
+
+    nodedf = pd.DataFrame(mphysets)
+    indexes = nodedf.index
+
+    mphylist = list()
+    for group in set(nodedf['kingdom']):
+        maxval = max(nodedf.loc[nodedf['kingdom'] == group]['seq_no'])
+        dfindex = indexes[(nodedf['kingdom'] == group) & (nodedf['seq_no'] == maxval)]
+        mphylist.append(mphysets[dfindex.values[0]])
+
+    return mphylist
 
 
 def root(tree, root_dict):
@@ -114,8 +155,7 @@ def get_events(tree, leaf, seqfrom):
     return events
 
 
-def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, st_ref, mrca_ref,
-              root_ref, rbls_r):
+def get_dists(tree, from_seq, to_seq, seed_id, phylome_id):
     '''
     Retrieves distances between pairs of sequences
 
@@ -151,12 +191,6 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, st_ref, mrca_ref,
     leafdistd['dupl'] = events['D']
     leafdistd['mrca_type'] = events['MRCA']
     leafdistd['dist'] = dist
-    leafdistd['st_median'] = st_ref['med']
-    leafdistd['mrca_median'] = mrca_ref['med']
-    leafdistd['root_median'] = root_ref['med']
-    leafdistd['tree_width'] = root_ref['twdth']
-    leafdistd['sum_brl'] = rbls_r['sum_brl']
-    leafdistd['med_brl'] = rbls_r['med_brl']
 
     return leafdistd
 
@@ -199,11 +233,13 @@ def get_sp_dist(tree, from_seq, to_seq, mrca_ref, root_ref, rbls_r):
 
 
 class dist_process(Process):
-    def __init__(self, tree_row, phylome_id, olist):
+    def __init__(self, tree_row, phylome_id, gnmdf, olist, norml):
         Process.__init__(self)
         self.tree_row = tree_row
         self.phylome_id = phylome_id
+        self.gnmdf = gnmdf
         self.olist = olist
+        self.norml = norml
 
     def run(self):
         tree = self.tree_row.split('\t')
@@ -219,17 +255,34 @@ class dist_process(Process):
             t.set_outgroup(t.get_midpoint_outgroup())
             t.get_descendant_evol_events()
 
-            st_ref = subtree_tt_ref(t, tree[0])
+            # st_ref = subtree_tt_ref(t, tree[0])
+            # root_ref = root_tt_ref(t, tree[0])
+
             mrca_ref = mrca_tt_ref(t, tree[0])
-            root_ref = root_tt_ref(t, tree[0])
+            mrca_ref['subtree'] = 'whole'
             rbls_r = rbls_ref(t, tree[0])
+            rbls_r['subtree'] = 'whole'
+
+            self.norml.append(mrca_ref)
+            self.norml.append(rbls_r)
+
+            if self.gnmdf is not None:
+                gnmdf = pd.read_csv(self.gnmdf, sep='\t')
+                rcl = ref_clades(t, gnmdf)
+                for st in rcl:
+                    stmrca = mrca_tt_ref(st['node'], tree[0])
+                    stmrca['subtree'] = st['kingdom']
+                    strbls = rbls_ref(st['node'], tree[0])
+                    strbls['subtree'] = st['kingdom']
+
+                    self.norml.append(stmrca)
+                    self.norml.append(strbls)
 
             for i, from_seq in enumerate(tnames):
                 for to_seq in tnames[i + 1:]:
                     if from_seq != to_seq:
                         leaf_dist = get_dists(t, from_seq, to_seq, tree[0],
-                                              self.phylome_id, st_ref,
-                                              mrca_ref, root_ref, rbls_r)
+                                              self.phylome_id)
                         if leaf_dist is not None:
                             self.olist.append(leaf_dist)
 
@@ -246,6 +299,9 @@ def main():
     parser.add_option('-o', '--output', dest='odir',
                       help='Output directory',
                       metavar='<path/to/output>')
+    parser.add_option('-p', '--pinfo', dest='pinfo',
+                      help='Phylome information in tsv format.',
+                      metavar='<path/to/file.tsv>')
     parser.add_option('-c', '--cpu', dest='cpus',
                       help='File with protein codes',
                       metavar='<path/to/file.txt>', type='int')
@@ -256,13 +312,15 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.default:
-        ifile = '../data/0005_0.txt'
+        ifile = '../data/0739_0.txt'
         odir = '../outputs'
+        gnmdf = '../data/README'
         cpus = 4
         sp_tree = False
     else:
         ifile = options.ifile
         odir = options.odir
+        gnmdf = options.pinfo
         cpus = options.cpus
         sp_tree = options.sp_tree
 
@@ -279,8 +337,8 @@ def main():
 
             tnames = t.get_leaf_names()
 
+            # root_ref = root_tt_ref(t)
             mrca_ref = mrca_tt_ref(t)
-            root_ref = root_tt_ref(t)
             rbls_r = rbls_ref(t)
 
             olist = list()
@@ -295,7 +353,8 @@ def main():
 
     else:
         dist_fn = '/'.join([odir, (file_id + '_dist.csv')])
-        if not file_exists(dist_fn):
+        norm_fn = '/'.join([odir, (file_id + '_norm.csv')])
+        if not file_exists(dist_fn) or not file_exists(norm_fn):
             print('Creating: ', dist_fn)
 
             create_folder(odir)
@@ -304,6 +363,7 @@ def main():
 
             with Manager() as manager:
                 olist = manager.list()
+                norml = manager.list()
 
                 processes = list()
                 for tree_row in trees:
@@ -316,7 +376,8 @@ def main():
                                         processes.remove(process)
                                         done = True
 
-                        process = dist_process(tree_row, phylome_id, olist)
+                        process = dist_process(tree_row, phylome_id,
+                                               gnmdf, olist, norml)
                         processes.append(process)
                         process.start()
 
@@ -325,24 +386,12 @@ def main():
 
                 # Writing output files
                 odf = pd.DataFrame(list(olist))
-
-                norm_fact = odf.groupby('tree').median()
-                meds = norm_fact.median(0)
-
-                odf['mrca_ndist'] = odf['dist'] / (odf['mrca_median'] /
-                                                   meds['mrca_median'])
-                odf['st_ndist'] = odf['dist'] / (odf['st_median'] /
-                                                 meds['st_median'])
-                odf['root_ndist'] = odf['dist'] / (odf['root_median'] /
-                                                   meds['root_median'])
-                odf['twdth_ndist'] = odf['dist'] / (odf['tree_width'] /
-                                                    meds['tree_width'])
-                odf['sbrl_ndist'] = odf['dist'] / (odf['sum_brl'] /
-                                                   meds['sum_brl'])
-                odf['brl_ndist'] = odf['dist'] / (odf['med_brl'] /
-                                                  meds['med_brl'])
-
                 odf.to_csv(dist_fn, index=False)
+
+                ndf = pd.DataFrame(list(norml))
+                ndf.to_csv(norm_fn, index=False)
+
+
 
 
 if __name__ == '__main__':

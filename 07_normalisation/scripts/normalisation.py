@@ -69,7 +69,7 @@ def subtree_tt_ref(tree, tid='sp'):
     kurt = stats.kurtosis(rtldist)
     sd = st.stdev(rtldist)
 
-    rstats = {'id': tid, 'wdth': wdth, 'mean': mean, 'med': med,
+    rstats = {'tree': tid, 'wdth': wdth, 'mean': mean, 'med': med,
               'skew': skew, 'kurt': kurt, 'sd': sd}
 
     return rstats
@@ -109,14 +109,16 @@ def mrca_tt_ref(tree, tid='sp'):
                         subt.evoltype == 'S'):
                     distl.extend([fromd, tod])
 
+    twdth = tree.get_farthest_leaf()[1]
     mean = np.mean(distl)
     med = np.median(distl)
     skew = stats.skew(distl)
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rstats = {'id': tid, 'mean': mean, 'med': med, 'skew': skew,
-              'kurt': kurt, 'sd': sd}
+    rstats = {'tree': tid, 'twdth': twdth, 'mean': mean, 'med': med,
+              'skew': skew, 'kurt': kurt, 'sd': sd, 'list_len': len(distl),
+              'method': 'mrca'}
 
     return rstats
 
@@ -152,8 +154,9 @@ def root_tt_ref(tree, tid='sp'):
     kurt = stats.kurtosis(distl)
     sd = st.stdev(distl)
 
-    rstats = {'id': tid, 'twdth': twdth, 'mean': mean, 'med': med,
-              'skew': skew, 'kurt': kurt, 'sd': sd}
+    rstats = {'tree': tid, 'twdth': twdth, 'mean': mean, 'med': med,
+              'skew': skew, 'kurt': kurt, 'sd': sd, 'list_len': len(distl),
+              'method': 'root'}
 
     return rstats
 
@@ -181,7 +184,14 @@ def rbls_ref(tree, tid='sp'):
     brls = [x.dist for x in tree.traverse()]
     twdth = tree.get_farthest_leaf()[1]
 
-    rstats = {'id': tid, 'sum_brl': sum(brls), 'med_brl': np.median(brls),
-              'twdth': twdth}
+    mean = np.mean(brls)
+    med = np.median(brls)
+    skew = stats.skew(brls)
+    kurt = stats.kurtosis(brls)
+    sd = st.stdev(brls)
+
+    rstats = {'tree': tid, 'twdth': twdth, 'mean': mean, 'med': med,
+              'skew': skew, 'kurt': kurt, 'sd': sd, 'list_len': len(brls),
+              'method': 'rbl'}
 
     return rstats
