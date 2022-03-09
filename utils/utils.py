@@ -93,7 +93,7 @@ def file_exists(filename):
     # Check file existence
     if os.path.isfile(filename):
         # Check the file is not empty
-        if os.stat(filename).st_size != 0:
+        if os.stat(filename).st_size > 1:
             return True
     else:
         return False
