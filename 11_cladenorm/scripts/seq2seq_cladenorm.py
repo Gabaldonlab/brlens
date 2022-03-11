@@ -158,12 +158,13 @@ def get_dists(tree, from_seq, to_seq, seed_id, phylome_id, normfdic):
 
 
 class dist_process(Process):
-    def __init__(self, tree_row, phylome_id, gnmdf, olist):
+    def __init__(self, tree_row, phylome_id, gnmdf, olist, nlist):
         Process.__init__(self)
         self.tree_row = tree_row
         self.phylome_id = phylome_id
         self.gnmdf = gnmdf
         self.olist = olist
+        self.nlist = nlist
 
     def run(self):
         if '\t' in self.tree_row:
@@ -186,6 +187,8 @@ class dist_process(Process):
 
             normfdic = clade_norm(t, tname, self.gnmdf,
                                   'Normalising group')
+
+            self.nlist += normfdic
 
             for i, from_seq in enumerate(tnames):
                 for to_seq in tnames[i + 1:]:
@@ -232,7 +235,7 @@ def main():
 
     dist_fn = '/'.join([odir, (file_id + '_dist.csv')])
     norm_fn = '/'.join([odir, (file_id + '_norm.csv')])
-    if not file_exists(dist_fn):
+    if not file_exists(dist_fn) or not file_exists(norm_fn):
         print('Creating: ', dist_fn)
 
         create_folder(odir)
@@ -242,6 +245,7 @@ def main():
 
         with Manager() as manager:
             olist = manager.list()
+            nlist = manager.list()
 
             processes = list()
             for tree_row in trees:
@@ -254,7 +258,8 @@ def main():
                                     processes.remove(process)
                                     done = True
 
-                    process = dist_process(tree_row, phylome_id, gnmdf, olist)
+                    process = dist_process(tree_row, phylome_id, gnmdf,
+                                           olist, nlist)
                     processes.append(process)
                     process.start()
 
@@ -264,6 +269,10 @@ def main():
             # Writing output files
             odf = pd.DataFrame(list(olist))
             odf.to_csv(dist_fn, index=False)
+
+            ndf = pd.DataFrame(list(nlist))
+            ndf = ndf.drop('node', axis=1)
+            ndf.to_csv(norm_fn, index=False)
 
 
 if __name__ == '__main__':

@@ -21,7 +21,6 @@ def clade_norm(tree, tree_id, cladedf, col):
         leaves = st.get_leaves()
 
         stwdth = st.get_farthest_leaf()[1]
-        print(stwdth)
 
         feat_list = list()
         for stleag in st.get_leaves():
