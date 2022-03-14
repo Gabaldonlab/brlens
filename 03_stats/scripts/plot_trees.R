@@ -6,8 +6,8 @@ library(ggtree)
 library(treeio)
 library(ggpubr)
 
-tree <- read.tree('../../11_cladenorm/data/0005_sptree.nwk')
-tdat <- read.csv('../../11_cladenorm/data/0005_norm_groups.csv')
+tree <- read.tree('../../02_get_distances/data/0005_sptree.nwk')
+tdat <- read.csv('../../02_get_distances/data/0005_norm_groups.csv')
 
 yetree <- ggtree(tree) %<+% tdat +
   geom_tiplab(aes(colour = Normalising.group)) +
@@ -15,8 +15,8 @@ yetree <- ggtree(tree) %<+% tdat +
   xlim(0, 2.5)
 yetree
 
-tree <- read.tree('../../11_cladenorm/data/0076_sptree.nwk')
-tdat <- read.csv('../../11_cladenorm/data/0076_norm_groups.csv')
+tree <- read.tree('../../02_get_distances/data/0076_sptree.nwk')
+tdat <- read.csv('../../02_get_distances/data/0076_norm_groups.csv')
 
 hutree <- ggtree(tree) %<+% tdat +
   geom_tiplab(aes(colour = Normalising.group)) +
@@ -26,8 +26,8 @@ hutree
 
 ggarrange(yetree, hutree, common.legend = TRUE)
 
-tree <- read.tree('../../11_cladenorm/data/qfo78_sp_tree.txt')
-tdat <- read.csv('../../11_cladenorm/data/qfo_78_norm_groups.csv')
+tree <- read.tree('../../02_get_distances/data/qfo78_sp_tree.txt')
+tdat <- read.csv('../../02_get_distances/data/qfo_78_norm_groups.csv')
 tdat$Proteome_ID <- tdat$Proteome
 
 qfotree <- ggtree(tree) %<+% tdat +

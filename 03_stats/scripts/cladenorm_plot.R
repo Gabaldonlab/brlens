@@ -31,16 +31,16 @@ for (i in 1:length(phylomes)) {
   refsp <- names(phylomes)[i]
   
   # Loading phylome info
-  phyinfo <- read.csv(paste0('../../11_cladenorm/data/', phylome, '_norm_groups.csv'))
+  phyinfo <- read.csv(paste0('../../02_get_distances/data/', phylome, '_norm_groups.csv'))
   
   # Loading and basic data management of phylome distances
-  dat <- read.csv(paste0('../../11_cladenorm/outputs/', phylome, '_dist.csv'))
+  dat <- read.csv(paste0('../../02_get_distances/outputs/', phylome, '_dist.csv'))
   spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == refsp | 
                        (dat$to_sp == refsp & dat$from_sp != dat$to_sp)), ]
   
   spdat$sp_to <- apply(spdat, 1, get_other, ref = refsp)
   
-  sptreedat <- read.csv(paste0('../../11_cladenorm/outputs/', phylome,
+  sptreedat <- read.csv(paste0('../../02_get_distances/outputs/', phylome,
                                '_sptree_dist.csv'))
   sptreedat$sp_to <- apply(sptreedat, 1, get_other, ref = refsp)
   

@@ -27,16 +27,16 @@ median_sp <- function(x, df) {
 phylomes <- c('ECOLI' = '0677', 'YEAST' = '0907', 'HUMAN' = '0739')
 
 # Loading phylome info
-phyinfo <- read.csv(paste0('../../11_cladenorm/data/qfo_78_norm_groups.csv'))
+phyinfo <- read.csv(paste0('../../02_get_distances/data/qfo_78_norm_groups.csv'))
 
-sptreedat <- read.csv(paste0('../../11_cladenorm/outputs/qfo78_sp_tree_dist.csv'))
+sptreedat <- read.csv(paste0('../../02_get_distances/outputs/qfo78_sp_tree_dist.csv'))
 
 for (i in 1:length(phylomes)) {
   phylome <- phylomes[i]
   refsp <- names(phylomes)[i]
   
   # Loading and basic data management of phylome distances
-  dat <- read.csv(paste0('../../11_cladenorm/outputs/', phylome, '_dist.csv'))
+  dat <- read.csv(paste0('../../02_get_distances/outputs/', phylome, '_dist.csv'))
   spdat <- dat[which(dat$mrca_type == 'S' & dat$from_sp == refsp | 
                        (dat$to_sp == refsp & dat$from_sp != dat$to_sp)), ]
   

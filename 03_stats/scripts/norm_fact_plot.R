@@ -11,7 +11,7 @@ for (i in 1:length(phylomes)) {
   phylome <- phylomes[i]
   refsp <- names(phylomes)[i]
   
-  dat <- read.csv(paste0('../../11_cladenorm/outputs/', phylome, '_norm.csv'))
+  dat <- read.csv(paste0('../../02_get_distances/outputs/', phylome, '_norm.csv'))
   
   p <- ggplot(dat, aes(mrca_to_tip_median, col = Normalising.group)) +
     geom_density() +
