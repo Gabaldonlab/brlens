@@ -26,7 +26,7 @@ filedir = os.path.abspath(__file__)
 projdir = filedir.rsplit('/', 3)[0]
 sys.path.append(projdir)
 
-from utils import *
+from utils import file_exists, create_folder
 
 
 # Definitions ----
