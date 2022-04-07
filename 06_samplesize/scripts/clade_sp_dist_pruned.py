@@ -21,6 +21,7 @@ import ete3
 import pandas as pd
 import numpy as np
 from multiprocessing import Process, Manager
+import random
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -148,10 +149,33 @@ def get_group_mrca(tree, tree_id, col, value, seed):
     return mphylist[0]
 
 
+def get_subtree(tree, feature, leafth, seed):
+    vertleaves = [l for l in tree.get_leaves() if str(getattr(l, feature)) != 'nan']
+    leafno = int((1 - leafth) * len(tree.get_leaf_names()))
+    to_save = random.choices(vertleaves, k=leafno) + [seed]
+    tree.prune(to_save)
+    return 0
+
+
+def get_distdict(seed, tree, label, nfactor, vert_dict, met_dict):
+    odict = dict()
+    odict[label + '_seed'] = seed
+    odict[label + '_species'] = get_species_tag(seed)
+    odict[label + '_vert_dist'] = vert_dict['node'].get_distance(seed)
+    odict[label + '_met_dist'] = met_dict['node'].get_distance(seed)
+    odict[label + '_seed_dist'] = tree.get_distance(seed)
+    odict[label + '_vert_ndist'] = vert_dict['node'].get_distance(seed) / nfactor
+    odict[label + '_met_ndist'] = met_dict['node'].get_distance(seed) / nfactor
+    odict[label + '_seed_ndist'] = tree.get_distance(seed) / nfactor
+
+    return odict
+
+
 def get_ndists(tree, phylome_id, gnmdf):
     treel = tree.split('\t')
     t = ete3.PhyloTree(treel[3], sp_naming_function=get_species_tag)
 
+    gnmdf = pd.read_csv('../data/0076_norm_groups.csv')
     root(t, root_dict[int(phylome_id)])
     t.get_descendant_evol_events()
 
@@ -168,15 +192,25 @@ def get_ndists(tree, phylome_id, gnmdf):
     met_dict = get_group_mrca(t, treel[0], 'Metazoan',
                               'metazoan', treel[0])
 
-    odict = dict()
-    odict['seed'] = treel[0]
-    odict['species'] = get_species_tag(treel[0])
-    odict['vert_dist'] = vert_dict['node'].get_distance(treel[0])
-    odict['met_dist'] = met_dict['node'].get_distance(treel[0])
-    odict['seed_dist'] = t.get_distance(treel[0])
-    odict['vert_ndist'] = vert_dict['node'].get_distance(treel[0]) / nfactor
-    odict['met_ndist'] = met_dict['node'].get_distance(treel[0]) / nfactor
-    odict['seed_ndist'] = t.get_distance(treel[0]) / nfactor
+    odict = get_distdict(treel[0], t, 'whole', nfactor, vert_dict, met_dict)
+
+    for i in [0.1, 0.25, 0.5]:
+        st = t
+
+        get_subtree(st, 'Vertebrate', i, treel[0])
+
+        norm_dict = clade_norm(st, treel[0], 'Normalising group')
+
+        nfactor = norm_dict['norm_factor']
+
+        vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
+                                   'vertebrate', treel[0])
+
+        met_dict = get_group_mrca(st, treel[0], 'Metazoan',
+                                  'metazoan', treel[0])
+
+        odict = {**odict, **get_distdict(treel[0], st, str(i), nfactor,
+                                         vert_dict, met_dict)}
 
     return odict
 

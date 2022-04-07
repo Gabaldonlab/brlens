@@ -68,5 +68,3 @@ ks.test(dat$met_ndist, y = 'pnorm')
 shapiro.test(sample(dat$vert_ndist, 5000))
 shapiro.test(sample(dat$met_ndist, 5000))
 var.test(gndat$distance ~ gndat$group)
-
-wilcox.test()
