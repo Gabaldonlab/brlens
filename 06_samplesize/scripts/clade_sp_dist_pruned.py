@@ -150,10 +150,15 @@ def get_group_mrca(tree, tree_id, col, value, seed):
 
 
 def get_subtree(tree, feature, leafth, seed):
-    vertleaves = [l for l in tree.get_leaves() if str(getattr(l, feature)) != 'nan']
+    vertleaves = [leaf for leaf in tree.get_leaves() if
+                  str(getattr(leaf, feature)) != 'nan']
     leafno = int((1 - leafth) * len(tree.get_leaf_names()))
+    leafno = max(leafno, 5)
+
     to_save = random.choices(vertleaves, k=leafno) + [seed]
+
     tree.prune(to_save)
+
     return 0
 
 
@@ -194,7 +199,7 @@ def get_ndists(tree, phylome_id, gnmdf):
 
     odict = get_distdict(treel[0], t, 'whole', nfactor, vert_dict, met_dict)
 
-    for i in [0.1, 0.25, 0.5]:
+    for i in [0.1, 0.25, 0.4, 0.5]:
         st = t
 
         get_subtree(st, 'Vertebrate', i, treel[0])
@@ -203,14 +208,15 @@ def get_ndists(tree, phylome_id, gnmdf):
 
         nfactor = norm_dict['norm_factor']
 
-        vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
-                                   'vertebrate', treel[0])
-
-        met_dict = get_group_mrca(st, treel[0], 'Metazoan',
-                                  'metazoan', treel[0])
-
-        odict = {**odict, **get_distdict(treel[0], st, str(i), nfactor,
-                                         vert_dict, met_dict)}
+        try:
+            vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
+                                       'vertebrate', treel[0])
+            met_dict = get_group_mrca(st, treel[0], 'Metazoan',
+                                      'metazoan', treel[0])
+            odict = {**odict, **get_distdict(treel[0], st, str(i), nfactor,
+                                             vert_dict, met_dict)}
+        except KeyError:
+            print('KeyError getting the MRCA of vertebrates or metazoans')
 
     return odict
 
