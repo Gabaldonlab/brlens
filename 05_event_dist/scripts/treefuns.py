@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 '''
-00_script.py -- Title of the script
-
-Brief description
+treefuns.py -- Functions useful to manipulate phylome trees
 
 Requirements:
+ - operator
+ - scipy
+ - numpy
 
-Written by Name <mail@mail.com>
-Month 2022
+Written by Moisès Bernabeu <moigil.bernabeu@gmail.com>
+April 2022
 '''
 
 # Import libraries ----
