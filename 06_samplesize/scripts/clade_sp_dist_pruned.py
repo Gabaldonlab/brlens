@@ -209,12 +209,13 @@ def get_ndists(tree, phylome_id, gnmdf):
         nfactor = norm_dict['norm_factor']
 
         try:
-            vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
+            vert_dict = get_group_mrca(st, treel[0], 'Vertebrate',
                                        'vertebrate', treel[0])
             met_dict = get_group_mrca(st, treel[0], 'Metazoan',
                                       'metazoan', treel[0])
-            odict = {**odict, **get_distdict(treel[0], st, str(i), nfactor,
-                                             vert_dict, met_dict)}
+            odict = {**odict, 'met_spno': met_dict[0],
+                     **get_distdict(treel[0], st, str(i), nfactor,
+                     vert_dict, met_dict)}
         except KeyError:
             print('KeyError getting the MRCA of vertebrates or metazoans')
 
