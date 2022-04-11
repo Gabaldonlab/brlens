@@ -21,7 +21,8 @@ import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
 from treefuns import get_species, root, annotate_tree, \
-    tree_stats, get_group_mrca
+    tree_stats, get_group_mrca, count_dupl_specs
+from operator import itemgetter
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -32,6 +33,42 @@ from utils import file_exists, create_folder
 
 
 # Definitions ----
+def get_paralstats(tree):
+    parlist = list()
+
+    # Analyse all the subtrees from the tree
+    for st in tree.traverse():
+        # Get those subtrees that root in a duplication node
+        if (len(parlist) == 0 and len(st.get_leaf_names()) > 1 and
+                st.evoltype == 'D'):
+            childs = st.get_children()
+
+            # Check both child clades have more than 4 and there are 2 childs
+            if len(childs) == 2 and all([len(ch.get_leaf_names()) > 4
+                                         for ch in childs]):
+                chevtypes = list()
+                # Go through childs storing the descendant node evoltytpe
+                for child in childs:
+                    chevtypes += [nd.evoltype for nd in child.iter_search_nodes()
+                                  if 'evoltype' in list(nd.features)]
+
+                # Check all the descendant nodes from the childs are speciation
+                # nodes and then store them in a list of tupples
+                if set(chevtypes) == {'S'}:
+                    for child in st.get_children():
+                        chstats = tree_stats(child)
+                        chstats = {**chstats, **count_dupl_specs(child)}
+                        parlist.append((chstats['median'], chstats))
+                        print('added to parlist')
+
+    parlist = sorted(parlist, key=itemgetter(0))
+
+    pardict = {**{'min_' + k: v for k, v in parlist[0][1].items()},
+               **{'max_' + k: v for k, v in parlist[0][1].items()}}
+
+    return pardict
+
+
 def get_ndists(tree, phylome_id, gnmdf):
     treel = tree.split('\t')
     print('Calculating: ', treel[0])
@@ -44,30 +81,18 @@ def get_ndists(tree, phylome_id, gnmdf):
                                          'Vertebrate',
                                          'Metazoan'])
 
+    whole_stats = tree_stats(t)
+
     norm_group = get_group_mrca(t, treel[0], 'Normalising group', 'A')
-
     norm_stats = tree_stats(norm_group['node'])
-    nsd =  count_dupl_specs(norm_stats['node'])
-    nfactor = norm_stats['median']
 
-    vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
-                               'vertebrate', treel[0])
+    pardict = get_paralstats(t)
 
-    met_dict = get_group_mrca(t, treel[0], 'Metazoan',
-                              'metazoan', treel[0])
-
-    odict = dict()
-    odict['seed'] = treel[0]
-    odict['species'] = get_species(treel[0])
-    odict['vert_dist'] = vert_dict['node'].get_distance(treel[0])
-    odict['met_dist'] = met_dict['node'].get_distance(treel[0])
-    odict['seed_dist'] = t.get_distance(treel[0])
-    odict['vert_ndist'] = vert_dict['node'].get_distance(treel[0]) / nfactor
-    odict['met_ndist'] = met_dict['node'].get_distance(treel[0]) / nfactor
-    odict['seed_ndist'] = t.get_distance(treel[0]) / nfactor
-    odict['nfactor'] = nfactor
-    odict['n_dupl'] = nsd['D']
-    odict['n_sp'] = nsd['S']
+    odict = {**{'whole_' + k: v for k, v in whole_stats.items()},
+             **{'whole_' + k: v for k, v in count_dupl_specs(t).items()},
+             **{'norm_' + k: v for k, v in norm_stats.items()},
+             **{'norm_' + k: v for k, v in count_dupl_specs(norm_group['node']).items()},
+             **pardict}
 
     return odict
 
@@ -81,8 +106,11 @@ class dist_process(Process):
         self.olist = olist
 
     def run(self):
-        odict = get_ndists(self.tree_row, self.phylome_id, self.gnmdf)
-        self.olist.append(odict)
+        try:
+            odict = get_ndists(self.tree_row, self.phylome_id, self.gnmdf)
+            self.olist.append(odict)
+        except IndexError:
+            print('Not only speciation paralogs found')
 
 
 def main():
@@ -109,7 +137,7 @@ def main():
         infile = '../data/0076_108.txt'
         gnmdffile = '../data/0076_norm_groups.csv'
         outdir = '../outputs/'
-        cpus = 4
+        cpus = 1
     else:
         infile = options.ifile
         gnmdffile = options.groups
@@ -122,6 +150,25 @@ def main():
     if not file_exists(ofile):
         create_folder(outdir)
 
+        # # Lineal code ----
+        # gnmdf = pd.read_csv(gnmdffile)
+        # phylome_id = infile.rsplit('/', 1)[1].split('_', 1)[0]
+        #
+        # olist = list()
+        # for tree_row in open(infile, 'r'):
+        #     if tree_row != '':
+        #         try:
+        #             odict = get_ndists(tree_row, phylome_id, gnmdf)
+        #             olist.append(odict)
+        #             print('Written')
+        #         except IndexError:
+        #             print('Not only speciation paralogs found')
+        #
+        # # Writing output files
+        # odf = pd.DataFrame(list(olist))
+        # odf.to_csv(ofile, index=False)
+
+        # Parallel code ----
         gnmdf = pd.read_csv(gnmdffile)
         phylome_id = infile.rsplit('/', 1)[1].split('_', 1)[0]
 
