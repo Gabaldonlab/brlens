@@ -63,6 +63,24 @@ nbp
 ggarrange(rbp, nbp, labels = 'auto', align = 'h', common.legend = TRUE)
 # dev.off()
 
+ggplot(dat, aes(x = n_dupl / n_sp, y = nfactor)) +
+  geom_point() +
+  geom_hline(yintercept = median(dat$nfactor), col = 'steelblue', lty = 4) +
+  geom_hline(yintercept = mean(dat$nfactor), col = 'darkorange3', lty = 4)
+
+ggplot(dat, aes(x = whole_width, y = nfactor)) +
+  geom_point() +
+  xlim(0, 20)
+
+ggplot(dat[which(dat$nfactor > 4.5), ], aes(x = whole_mean, y = nfactor)) +
+  geom_point()
+
+d2 <- dat[which(dat$nfactor > 4.5), ]
+
+as.data.frame(names(d2))
+
+plot(d2[, c(9:11, 20:23, 26, 27)], pch = 20)
+
 ks.test(dat$vert_ndist, y = 'pnorm')
 ks.test(dat$met_ndist, y = 'pnorm')
 shapiro.test(sample(dat$vert_ndist, 5000))

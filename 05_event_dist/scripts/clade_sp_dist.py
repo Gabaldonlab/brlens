@@ -21,7 +21,7 @@ import ete3
 import pandas as pd
 from multiprocessing import Process, Manager
 from treefuns import get_species, root, annotate_tree, \
-    tree_stats, get_group_mrca
+    tree_stats, get_group_mrca, count_dupl_specs
 
 # Path configuration to import utils ----
 filedir = os.path.abspath(__file__)
@@ -47,7 +47,7 @@ def get_ndists(tree, phylome_id, gnmdf):
     norm_group = get_group_mrca(t, treel[0], 'Normalising group', 'A')
 
     norm_stats = tree_stats(norm_group['node'])
-    nsd =  count_dupl_specs(norm_stats['node'])
+    nsd = count_dupl_specs(norm_group['node'])
     nfactor = norm_stats['median']
 
     vert_dict = get_group_mrca(t, treel[0], 'Vertebrate',
@@ -68,6 +68,11 @@ def get_ndists(tree, phylome_id, gnmdf):
     odict['nfactor'] = nfactor
     odict['n_dupl'] = nsd['D']
     odict['n_sp'] = nsd['S']
+
+    odict = {**odict,
+             **{'norm_' + k: v for k, v in norm_stats.items()},
+             **{'whole_' + k: v for k, v in tree_stats(t).items()},
+             **{'whole_' + k: v for k, v in count_dupl_specs(t).items()}}
 
     return odict
 

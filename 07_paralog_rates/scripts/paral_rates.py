@@ -64,7 +64,7 @@ def get_paralstats(tree):
     parlist = sorted(parlist, key=itemgetter(0))
 
     pardict = {**{'min_' + k: v for k, v in parlist[0][1].items()},
-               **{'max_' + k: v for k, v in parlist[0][1].items()}}
+               **{'max_' + k: v for k, v in parlist[1][1].items()}}
 
     return pardict
 
