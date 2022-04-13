@@ -93,22 +93,22 @@ def get_ndists(tree, phylome_id, gnmdf):
 
         get_subtree(st, 'Vertebrate', i, treel[0])
 
-        print(st)
-
         norm_group = get_group_mrca(st, treel[0], 'Normalising group', 'A')
         norm_stats = tree_stats(norm_group['node'])
-        print(norm_stats)
         nfactor = norm_stats['median']
 
         try:
             vert_dict = get_group_mrca(st, treel[0], 'Vertebrate',
                                        'vertebrate', treel[0])
+            print('Vertebrate', vert_dict)
+            odict = {**odict, **{'vert_%s_%s' % (i, k): v for k, v in vert_dict.items()}}
         except KeyError:
             print('KeyError getting the MRCA of vertebrates')
 
         try:
             met_dict = get_group_mrca(st, treel[0], 'Metazoan',
                                       'metazoan', treel[0])
+            odict = {**odict, **{'met_%s_%s' % (i, k): v for k, v in met_dict.items()}}
         except KeyError:
             print('KeyError getting the MRCA of metazoans')
 
