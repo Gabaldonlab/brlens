@@ -77,9 +77,7 @@ def get_ndists(tree, phylome_id, gnmdf):
     root(t, root_dict[int(phylome_id)])
     t.get_descendant_evol_events()
 
-    annotate_tree(t, gnmdf, 'Proteome', ['Normalising group',
-                                         'Vertebrate',
-                                         'Metazoan'])
+    annotate_tree(t, gnmdf, 'Proteome', 'Normalising group')
 
     whole_stats = tree_stats(t)
 

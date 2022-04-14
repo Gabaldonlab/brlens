@@ -18,3 +18,47 @@ gdupl <- gather(dat[, c('max_mean', 'min_mean')])
 ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
   geom_boxplot(alpha = 0.6) +
   ylim(0, quantile(gdupl$value, 0.9))
+
+gdupl <- gather(dat[, c('max_skew', 'min_skew')])
+ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
+  geom_boxplot(alpha = 0.6)
+
+# No var equal
+var.test(dat$min_median, dat$max_median)
+
+t.test(dat$min_median, dat$max_median, var.equal = FALSE)
+
+gmeds <- gather(dat[, c('whole_D', 'min_median', 'max_median')],
+                key = 'subtree', value = 'median',
+                -whole_D)
+
+dat <- read.csv('../outputs/0005_dist.csv')
+
+ggplot(dat, aes(norm_median, norm_D / norm_S)) +
+  geom_point()
+
+gdupl <- gather(dat[, c('max_median', 'min_median')])
+
+ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
+  geom_boxplot(alpha = 0.6) +
+  ylim(0, quantile(gdupl$value, 0.9))
+
+gdupl <- gather(dat[, c('max_mean', 'min_mean')])
+
+ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
+  geom_boxplot(alpha = 0.6) +
+  ylim(0, quantile(gdupl$value, 0.9))
+
+gdupl <- gather(dat[, c('max_skew', 'min_skew')])
+ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
+  geom_boxplot(alpha = 0.6)
+
+# No var equal
+var.test(dat$min_median, dat$max_median)
+
+t.test(dat$min_median, dat$max_median, var.equal = FALSE)
+
+gmeds <- gather(dat[, c('whole_D', 'min_median', 'max_median')],
+                key = 'subtree', value = 'median',
+                -whole_D)
+

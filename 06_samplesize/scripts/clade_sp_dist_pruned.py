@@ -88,7 +88,7 @@ def get_ndists(tree, phylome_id, gnmdf):
 
     odict = get_distdict(treel[0], t, 'whole', nfactor, vert_dict, met_dict)
 
-    for i in [0.1, 0.25, 0.3]:
+    for i in [0.1, 0.25, 0.4]:
         st = t
 
         get_subtree(st, 'Vertebrate', i, treel[0])
@@ -101,14 +101,14 @@ def get_ndists(tree, phylome_id, gnmdf):
             vert_dict = get_group_mrca(st, treel[0], 'Vertebrate',
                                        'vertebrate', treel[0])
             print('Vertebrate', vert_dict)
-            odict = {**odict, **{'vert_%s_%s' % (i, k): v for k, v in vert_dict.items()}}
+            # odict = {**odict, **{'vert_%s_%s' % (i, k): v for k, v in vert_dict.items()}}
         except KeyError:
             print('KeyError getting the MRCA of vertebrates')
 
         try:
             met_dict = get_group_mrca(st, treel[0], 'Metazoan',
                                       'metazoan', treel[0])
-            odict = {**odict, **{'met_%s_%s' % (i, k): v for k, v in met_dict.items()}}
+            # odict = {**odict, **{'met_%s_%s' % (i, k): v for k, v in met_dict.items()}}
         except KeyError:
             print('KeyError getting the MRCA of metazoans')
 
