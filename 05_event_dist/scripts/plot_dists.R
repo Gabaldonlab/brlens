@@ -1,6 +1,8 @@
 library(ggpubr)
 library(ggplot2)
 library(tidyr)
+library(gridExtra)
+
 theme_set(theme_bw())
 
 dat <- read.csv('../outputs/0076_dist.csv')
@@ -41,8 +43,9 @@ rdat <- dat[, c(1, 3, 4)]
 names(rdat) <- c('seed', 'Vertebrate', 'Metazoan')
 grdat <- gather(rdat, key = 'group', value = 'distance', -c(seed))
 
-rbp <- ggplot(grdat, aes(y = distance, color = group, fill = group)) +
+rbp <- ggplot(grdat, aes(y = distance, x = group, color = group, fill = group)) +
   geom_boxplot(alpha = 0.6) +
+  geom_violin(fill = NA) +
   ylab('Raw distance') +
   ylim(0, q09)
 
@@ -52,12 +55,15 @@ ndat <- dat[, c(1, 6, 7)]
 names(ndat) <- c('seed', 'Vertebrate', 'Metazoan')
 gndat <- gather(ndat, key = 'group', value = 'distance', -c(seed))
 
-nbp <- ggplot(gndat, aes(y = distance, color = group, fill = group)) +
+nbp <- ggplot(gndat, aes(y = distance, x = group,  color = group, fill = group)) +
   geom_boxplot(alpha = 0.6) +
+  geom_violin(fill = NA) +
   ylab('Normalised distance') +
   ylim(0, quantile(gndat$distance, 0.9))
 
 nbp
+
+save(rbp, nbp, ndistp, grdat, gndat, file = '~/Documents/research/working/dat.Rdata')
 
 # pdf('../outputs/rn_boxplots.pdf', width = 9, height = 3.5)
 ggarrange(rbp, nbp, labels = 'auto', align = 'h', common.legend = TRUE)
@@ -80,6 +86,20 @@ d2 <- dat[which(dat$nfactor > 4.5), ]
 as.data.frame(names(d2))
 
 plot(d2[, c(9:11, 20:23, 26, 27)], pch = 20)
+
+data.frame(names(dat))
+d3 <- dat[which(dat$nfactor > 4.5), c(9:12, 19:20, 26)]
+
+ps <- c()
+for (v in 2:(length(d3))) {
+  p <- ggplot(data.frame(x = d3[, v], y = d3[, 1]), aes(x, y)) +
+    geom_point() +
+    ylab('Normalising factor') +
+    xlab(names(d3)[v])
+  ps[[v - 1]] <- p
+}
+
+do.call("grid.arrange", c(ps, ncol=3))
 
 ks.test(dat$vert_ndist, y = 'pnorm')
 ks.test(dat$met_ndist, y = 'pnorm')
