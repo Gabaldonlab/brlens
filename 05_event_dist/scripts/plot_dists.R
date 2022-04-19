@@ -2,6 +2,8 @@ library(ggpubr)
 library(ggplot2)
 library(tidyr)
 library(gridExtra)
+library(ggtree)
+library(treeio)
 
 theme_set(theme_bw())
 
@@ -21,12 +23,36 @@ rdistp
 
 q09 <- quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)
 
-dat <- dat[-which(dat$vert_ndist > q09 & dat$met_ndist >= q09), ]
+plot(dat$met_ndist, dat$whole_width)
+text(dat$met_ndist[which(dat$met_ndist > 50)],
+     dat$whole_width[which(dat$met_ndist > 50)] + 2,
+     labels = dat$seed[which(dat$met_ndist > 50)])
+
+write.csv(dat$seed[which(dat$met_ndist > 20)], row.names = FALSE, file = '~/Desktop/miau.txt')
+
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
+plot(dat$vert_ndist, xlab = 'Tree', ylab = 'Vertebrate distance')
+plot(dat$met_ndist, xlab = 'Tree', ylab = 'Metazoan distance')
+dev.off()
+
+a <- ggplot() +
+  geom_point(aes(dat$whole_width / dat$norm_width, dat$met_ndist / dat$met_dist)) +
+  xlab('Whole tree width / Norm. clade width') +
+  ylab('Metazoan normalised distance')
+
+b <- ggplot() +
+  geom_point(aes(dat$whole_width / dat$norm_width, dat$vert_ndist / dat$vert_dist)) +
+  xlab('Whole tree width / Norm. clade width') +
+  ylab('Vertebrate normalised distance')
+
+ggarrange(a, b, hjust = 'hv')
+
+# dat <- dat[-which(dat$vert_ndist > q09 & dat$met_ndist >= q09), ]
 
 ndistp <- ggplot(dat) +
   geom_density(aes(x = vert_ndist, col = 'vertebrates')) +
   geom_density(aes(x = met_ndist, col = 'metazoan')) +
-  xlim(0, quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)) +
+  # xlim(0, quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)) +
   xlab('Seed to event normalised distance') +
   labs(colour = 'Event')
 
@@ -63,7 +89,7 @@ nbp <- ggplot(gndat, aes(y = distance, x = group,  color = group, fill = group))
 
 nbp
 
-save(rbp, nbp, ndistp, grdat, gndat, file = '~/Documents/research/working/dat.Rdata')
+# save(rbp, nbp, ndistp, grdat, gndat, file = '~/Documents/research/working/dat.Rdata')
 
 # pdf('../outputs/rn_boxplots.pdf', width = 9, height = 3.5)
 ggarrange(rbp, nbp, labels = 'auto', align = 'h', common.legend = TRUE)
@@ -77,6 +103,13 @@ ggplot(dat, aes(x = n_dupl / n_sp, y = nfactor)) +
 ggplot(dat, aes(x = whole_width, y = nfactor)) +
   geom_point() +
   xlim(0, 20)
+
+ggplot(dat, aes(x = whole_leafno, y = nfactor)) +
+  geom_point() +
+  xlim(0, 20)
+
+data.frame(names(dat))
+plot(dat[which(dat$met_dist > quantile(dat$met_dist, 0.9)), c(9:12, 19:20)])
 
 ggplot(dat[which(dat$nfactor > 4.5), ], aes(x = whole_mean, y = nfactor)) +
   geom_point()
@@ -106,3 +139,14 @@ ks.test(dat$met_ndist, y = 'pnorm')
 shapiro.test(sample(dat$vert_ndist, 5000))
 shapiro.test(sample(dat$met_ndist, 5000))
 var.test(gndat$distance ~ gndat$group)
+
+trees <- read.tree('../outputs/seltrees_nwk.nwk')
+
+p <- c()
+i = 1
+for (tree in trees) {
+  p[[i]] <- ggtree(tree)
+  i = i + 1
+}
+
+do.call("grid.arrange", c(p, ncol=7))
