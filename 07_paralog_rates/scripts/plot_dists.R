@@ -5,19 +5,18 @@ theme_set(theme_bw())
 
 dat <- read.csv('../outputs/0076_dist.csv')
 
-cols <- c('Mean' = 'steelblue', 'Median' = 'darkorange3')
 ggplot(dat, aes(norm_D / norm_S, norm_median)) +
   geom_point() +
-  geom_hline(yintercept = mean(dat$norm_median), lty = 2) +
-  geom_hline(yintercept = median(dat$norm_median), lty = 4) +
+  geom_hline(yintercept = mean(dat$norm_median), lty = 2, col = 'darkorange') +
+  geom_hline(yintercept = median(dat$norm_median), lty = 4, col = 'steelblue') +
   labs(color = 'Legend')
 
 # Raw medians
 meds <- dat[, c('max_median', 'min_median')]
-summary(mmeds)
+summary(meds)
 apply(meds, 2, sd)
 
-gndupl <- gather(nmeds)
+gdupl <- gather(meds)
 
 a <- ggplot(gdupl, aes(y = value, x = key, col = key, fill = key)) +
   geom_boxplot(alpha = 0.6) +

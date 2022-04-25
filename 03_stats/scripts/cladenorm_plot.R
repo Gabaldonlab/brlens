@@ -157,3 +157,60 @@ for (i in 1:length(phylomes)) {
   dev.off()
 }
 
+# Special plots ----
+yedat <- read.csv('../../02_get_distances/outputs/0005_dist.csv')
+yedat <- yedat[which(yedat$mrca_type == 'S' & yedat$from_sp == 'YEAST' | 
+                     (yedat$to_sp == 'YEAST' & yedat$from_sp != yedat$to_sp)), ]
+yedat$sp_to <- apply(yedat, 1, get_other, ref = 'YEAST')
+
+str(yedat)
+summary(yedat)
+
+hudat <- read.csv('../../02_get_distances/outputs/0076_dist.csv')
+hudat <- hudat[which(hudat$mrca_type == 'S' & hudat$from_sp == 'HUMAN' | 
+                       (hudat$to_sp == 'HUMAN' & hudat$from_sp != hudat$to_sp)), ]
+hudat$sp_to <- apply(hudat, 1, get_other, ref = 'HUMAN')
+
+str(hudat)
+summary(hudat)
+
+yerdens <- ggplot(yedat, aes(dist, col = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(yedat$dist, 0.99)) +
+  xlab('Yeast to sp. distance') +
+  ylab('Density')
+
+yerdens
+
+hurdens <- ggplot(hudat, aes(dist, col = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(hudat$dist, 0.99)) +
+  xlab('Human to sp. distance') +
+  ylab('Density')
+
+hurdens
+
+# pdf('../outputs/raw_densities.pdf', width = 6.3, height = 2.3)
+ggarrange(yerdens, hurdens, align = 'hv', labels = 'auto')
+# dev.off()
+
+yendens <- ggplot(yedat, aes(ndist_A, col = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(yedat$dist, 0.99)) +
+  xlab('Yeast to sp. norm. distance') +
+  ylab('Density')
+
+yendens
+
+hundens <- ggplot(hudat, aes(ndist_A, col = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(hudat$dist, 0.99)) +
+  xlab('Human to sp. norm. distance') +
+  ylab('Density')
+
+hundens
+
+# pdf('../outputs/norm_densities.pdf', width = 6.3, height = 2.3)
+ggarrange(yendens, hundens, align = 'hv', labels = 'auto')
+# dev.off()
+

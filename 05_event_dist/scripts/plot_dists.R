@@ -15,20 +15,21 @@ rdistp <- ggplot(dat) +
   geom_density(aes(x = vert_dist, col = 'vertebrates')) +
   geom_density(aes(x = met_dist, col = 'metazoan')) +
   xlab('Seed to event raw distance') +
-  labs(colour = 'Event')
+  labs(colour = 'Event') +
+  ylab('Density')
 
-# pdf('../outputs/raw_dist.pdf', width = 6.5, height = 3.5)
+# pdf('../outputs/raw_dist.pdf', width = 4.6, height = 2.4)
 rdistp
 # dev.off()
 
-q09 <- quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)
+q99 <- quantile(c(dat$met_ndist, dat$vert_ndist), 0.99)
 
 plot(dat$met_ndist, dat$whole_width)
-text(dat$met_ndist[which(dat$met_ndist > 50)],
-     dat$whole_width[which(dat$met_ndist > 50)] + 2,
-     labels = dat$seed[which(dat$met_ndist > 50)])
+text(dat$met_ndist[which(dat$met_ndist > q99)],
+     dat$whole_width[which(dat$met_ndist > q99)] + 2,
+     labels = dat$seed[which(dat$met_ndist > q99)])
 
-write.csv(dat$seed[which(dat$met_ndist > 20)], row.names = FALSE, file = '~/Desktop/miau.txt')
+# write.csv(dat$seed[which(dat$met_ndist > 20)], row.names = FALSE, file = '~/Desktop/miau.txt')
 
 par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
 plot(dat$vert_ndist, xlab = 'Tree', ylab = 'Vertebrate distance')
@@ -38,12 +39,14 @@ dev.off()
 a <- ggplot() +
   geom_point(aes(dat$whole_width / dat$norm_width, dat$met_ndist / dat$met_dist)) +
   xlab('Whole tree width / Norm. clade width') +
-  ylab('Metazoan normalised distance')
+  ylab('Metazoan normalised distance') +
+  xlim(0, 300)
 
 b <- ggplot() +
   geom_point(aes(dat$whole_width / dat$norm_width, dat$vert_ndist / dat$vert_dist)) +
   xlab('Whole tree width / Norm. clade width') +
-  ylab('Vertebrate normalised distance')
+  ylab('Vertebrate normalised distance') +
+  xlim(0, 300)
 
 ggarrange(a, b, hjust = 'hv')
 
@@ -56,6 +59,7 @@ ndistp <- ggplot(dat) +
   xlab('Seed to event normalised distance') +
   labs(colour = 'Event')
 
+dat[which(dat$met_ndist >= 20 | dat$vert_ndist >= 20), 1]
 
 # pdf('../outputs/norm_dist.pdf', width = 6.5, height = 3.5)
 ndistp
@@ -134,6 +138,21 @@ for (v in 2:(length(d3))) {
 
 do.call("grid.arrange", c(ps, ncol=3))
 
+# To look quitely!
+datl1 <- dat[which(dat$nfactor < 1), ]
+d4 <- datl1[, c(9:12, 19:20, 26)]
+
+ps <- c()
+for (v in 2:(length(d3))) {
+  p <- ggplot(data.frame(x = d4[, v], y = log(d4[, 1])), aes(x, y)) +
+    geom_point() +
+    ylab('Normalising factor') +
+    xlab(names(d3)[v])
+  ps[[v - 1]] <- p
+}
+
+do.call("grid.arrange", c(ps, ncol=3))
+
 ks.test(dat$vert_ndist, y = 'pnorm')
 ks.test(dat$met_ndist, y = 'pnorm')
 shapiro.test(sample(dat$vert_ndist, 5000))
@@ -142,7 +161,10 @@ var.test(gndat$distance ~ gndat$group)
 
 trees <- read.tree('../outputs/seltrees_nwk.nwk')
 
-p <- c()
+library(stringr)
+str_split(names(trees), ':', simplify = TRUE)[, 2]
+
+jaap <- c()
 i = 1
 for (tree in trees) {
   p[[i]] <- ggtree(tree)
