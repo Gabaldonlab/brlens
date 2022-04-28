@@ -159,16 +159,16 @@ for (i in 1:length(phylomes)) {
 
 # Special plots ----
 yedat <- read.csv('../../02_get_distances/outputs/0005_dist.csv')
-yedat <- yedat[which(yedat$mrca_type == 'S' & yedat$from_sp == 'YEAST' | 
-                     (yedat$to_sp == 'YEAST' & yedat$from_sp != yedat$to_sp)), ]
+yedat <- yedat[which(yedat$mrca_type == 'S' & (yedat$from_sp == 'YEAST' | 
+                     yedat$to_sp == 'YEAST') & yedat$from_sp != yedat$to_sp), ]
 yedat$sp_to <- apply(yedat, 1, get_other, ref = 'YEAST')
 
 str(yedat)
 summary(yedat)
 
 hudat <- read.csv('../../02_get_distances/outputs/0076_dist.csv')
-hudat <- hudat[which(hudat$mrca_type == 'S' & hudat$from_sp == 'HUMAN' | 
-                       (hudat$to_sp == 'HUMAN' & hudat$from_sp != hudat$to_sp)), ]
+hudat <- hudat[which(hudat$mrca_type == 'S' & (hudat$from_sp == 'HUMAN' | 
+                       hudat$to_sp == 'HUMAN') & hudat$from_sp != hudat$to_sp), ]
 hudat$sp_to <- apply(hudat, 1, get_other, ref = 'HUMAN')
 
 str(hudat)
@@ -196,7 +196,7 @@ ggarrange(yerdens, hurdens, align = 'hv', labels = 'auto')
 
 yendens <- ggplot(yedat, aes(ndist_A, col = sp_to)) +
   geom_density(show.legend = FALSE) +
-  xlim(0, quantile(yedat$dist, 0.99)) +
+  xlim(0, quantile(yedat$dist, 0.999)) +
   xlab('Yeast to sp. norm. distance') +
   ylab('Density')
 
