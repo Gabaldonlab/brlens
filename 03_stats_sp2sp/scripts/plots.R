@@ -1,0 +1,154 @@
+# Plots for species to species distances
+# Moisès Bernabeu
+# Barcelona, April 2022
+
+library(ggridges)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(gridExtra)
+library(dplyr)
+
+theme_set(theme_bw())
+
+# Plots ----
+load('../data/seed2sp_dist.Rdata')
+
+# Density plots with ggridges
+yedens <- yedat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
+  ggplot(aes(x = dist, y = sp_to, fill = sp_to)) +
+  geom_density_ridges2(show.legend = FALSE) +
+  xlim(0, 5) +
+  xlab('Distance to S. cerevisiae') +
+  ylab('Density')
+
+# pdf('../msct_plots/ggridg_seed2sp_yeast.pdf', width = 2.5, height = 7)
+yedens
+# dev.off()
+
+hudens <- hudat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
+  ggplot(aes(x = dist, y = sp_to, fill = sp_to)) +
+  geom_density_ridges2(show.legend = FALSE) +
+  xlim(0, 10) +
+  xlab('Distance to H. sapiens') +
+  ylab('Density')
+
+# pdf('../msct_plots/ggridg_seed2sp_human.pdf', width = 2.5, height = 7)
+hudens
+# dev.off()
+
+# pdf('../msct_plots/ggridg_seed2sp_both.pdf', width = 5, height = 7)
+ggarrange(yedens, hudens, labels = 'auto', align = 'hv')
+# dev.off()
+
+# Density plots with ggridges of normalised distances
+yendens <- yedat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
+  ggplot(aes(x = ndist_A, y = sp_to, fill = sp_to)) +
+  geom_density_ridges2(show.legend = FALSE) +
+  xlim(0, 5) +
+  xlab('Distance to S. cerevisiae') +
+  ylab('Density')
+
+# pdf('../msct_plots/ggridg_seed2sp_n_yeast.pdf', width = 2.5, height = 7)
+yendens
+# dev.off()
+
+hundens <- hudat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
+  ggplot(aes(x = ndist_A, y = sp_to, fill = sp_to)) +
+  geom_density_ridges2(show.legend = FALSE) +
+  xlim(0, 10) +
+  xlab('Distance to H. sapiens') +
+  ylab('Density')
+
+# pdf('../msct_plots/ggridg_seed2sp_n_human.pdf', width = 2.5, height = 7)
+hundens
+# dev.off()
+
+# pdf('../msct_plots/ggridg_seed2sp_n_both.pdf', width = 5, height = 7)
+ggarrange(yendens, hundens, labels = 'auto', align = 'hv')
+# dev.off()
+
+yedplot <- ggplot(yedat, aes(dist, colour = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(yedat$dist, 0.999)) +
+  ylab('Density') +
+  xlab('Raw distance')
+
+yendplot <- ggplot(yedat, aes(ndist_A, colour = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(yedat$dist, 0.999)) +
+  ylab('Density') +
+  xlab('Normalised distance')
+
+# pdf('../outputs/yeast_densities.pdf', width = 6.3, height = 2.3)
+ggarrange(yedplot, yendplot, labels = 'auto', align = 'hv')
+# dev.off()
+
+hudplot <- ggplot(hudat, aes(dist, colour = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(hudat$dist, 0.999)) +
+  ylim(0, 2.5) +
+  ylab('Density') +
+  xlab('Raw distance')
+
+hundplot <- ggplot(hudat, aes(ndist_A, colour = sp_to)) +
+  geom_density(show.legend = FALSE) +
+  xlim(0, quantile(hudat$dist, 0.999)) +
+  ylab('Density') +
+  xlab('Normalised distance') +
+  ylim(0, 2.5)
+
+# pdf('../outputs/human_densities.pdf', width = 6.3, height = 2.3)
+ggarrange(hudplot, hundplot, labels = 'auto', align = 'hv')
+# dev.off()
+
+
+yedatgr <- yedat %>%
+  group_by(sp_to) %>%
+  summarise('median_dist' = median(dist), 'mean_dist' = mean(dist),
+            'median_ndist' = median(ndist_A), 'mean_ndist' = mean(ndist_A))
+
+yespphy <- merge(yedatgr, yespt[, c('dist', 'ndist_A', 'sp_to')], by = 'sp_to')
+
+hudatgr <- hudat %>%
+  group_by(sp_to) %>%
+  summarise('median_dist' = median(dist), 'mean_dist' = mean(dist),
+            'median_ndist' = median(ndist_A), 'mean_ndist' = mean(ndist_A))
+
+huspphy <- merge(hudatgr, huspt[, c('dist', 'ndist_A', 'sp_to')], by = 'sp_to')
+
+yespphyp <- ggplot(yespphy, aes(dist, median_dist)) +
+  geom_point() +
+  xlab('Species tree distance') +
+  ylab('Phylome median distance') +
+  labs(title = 'Yeast phylome')
+
+huspphyp <- ggplot(huspphy, aes(dist, median_dist)) +
+  geom_point() +
+  xlab('Species tree distance') +
+  ylab('Phylome median distance') +
+  labs(title = 'Human phylome')
+
+yespphynp <- ggplot(yespphy, aes(dist, median_ndist)) +
+  geom_point() +
+  xlab('Species tree distance') +
+  ylab('Phylome median norm. distance') +
+  labs(title = 'Yeast phylome')
+
+huspphynp <- ggplot(huspphy, aes(dist, median_ndist)) +
+  geom_point() +
+  xlab('Species tree distance') +
+  ylab('Phylome median norm. distance') +
+  labs(title = 'Human phylome')
+
+# pdf('../msct_plots/spphy_both.pdf', width = 8.4, height = 3.15)
+ggarrange(yespphyp, huspphyp, labels = 'auto', align = 'hv')
+# dev.off()
+
+# pdf('../msct_plots/spphy_n_both.pdf', width = 8.4, height = 3.15)
+ggarrange(yespphynp, huspphynp, labels = 'auto', align = 'hv')
+# dev.off()

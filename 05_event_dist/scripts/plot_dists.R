@@ -55,7 +55,7 @@ ggarrange(a, b, hjust = 'hv')
 ndistp <- ggplot(dat) +
   geom_density(aes(x = vert_ndist, col = 'vertebrates')) +
   geom_density(aes(x = met_ndist, col = 'metazoan')) +
-  # xlim(0, quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)) +
+  xlim(0, quantile(c(dat$met_ndist, dat$vert_ndist), 0.9)) +
   xlab('Seed to event normalised distance') +
   labs(colour = 'Event')
 
@@ -77,7 +77,7 @@ rbp <- ggplot(grdat, aes(y = distance, x = group, color = group, fill = group)) 
   geom_boxplot(alpha = 0.6) +
   geom_violin(fill = NA) +
   ylab('Raw distance') +
-  ylim(0, q09)
+  ylim(0, quantile(grdat$distance, 0.9))
 
 rbp
 
@@ -159,12 +159,12 @@ shapiro.test(sample(dat$vert_ndist, 5000))
 shapiro.test(sample(dat$met_ndist, 5000))
 var.test(gndat$distance ~ gndat$group)
 
-trees <- read.tree('../outputs/seltrees_nwk.nwk')
+trees <- read.tree('../outputs/')
 
 library(stringr)
 str_split(names(trees), ':', simplify = TRUE)[, 2]
 
-jaap <- c()
+p <- list()
 i = 1
 for (tree in trees) {
   p[[i]] <- ggtree(tree)
@@ -172,3 +172,4 @@ for (tree in trees) {
 }
 
 do.call("grid.arrange", c(p, ncol=7))
+do.call("grid.arrange", p)
