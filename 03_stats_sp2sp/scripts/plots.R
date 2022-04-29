@@ -107,6 +107,14 @@ ggarrange(hudplot, hundplot, labels = 'auto', align = 'hv')
 # dev.off()
 
 
+yejoined <- ggplot(yedat, aes(ndist_A)) +
+  geom_density() +
+  xlim(0, quantile(yedat$ndist_A, 0.99)) +
+  xlab('Normalised distance') +
+  ylab('Density')
+
+ggarrange(yejoined, yendplot)
+
 yedatgr <- yedat %>%
   group_by(sp_to) %>%
   summarise('median_dist' = median(dist), 'mean_dist' = mean(dist),
