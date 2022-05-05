@@ -66,7 +66,20 @@ ggtree(t) +
   geom_label2(aes(x = branch, label = l_labs), parse = TRUE) +
   labs(title = 'Gene')
 
-rp
+rp <- rp +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  xlab('Density') +
+  ylab('Distance')
+
+np <- ggplot() +
+  geom_line(aes(0:400/100, dgamma(0:400/100, 3, 2))) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  xlab('Density') +
+  ylab('Distance')
+
+pdf('../msct_plots/', width = 8, height = 2)
+ggarrange(rp, np, align = 'hv', labels = 'auto')
+dev.off()
 
 p <- c()
 for (i in 1:9) {

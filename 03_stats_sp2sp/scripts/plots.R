@@ -27,6 +27,22 @@ yedens <- yedat %>%
 yedens
 # dev.off()
 
+yedensind <- yedat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
+  ggplot(aes(x = dist, fill = sp_to, colour = sp_to)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  xlim(0, 5) +
+  xlab('Distance to S. cerevisiae') +
+  ylab('Density') +
+  facet_wrap(~sp_to, scales = 'free_y')
+
+yedensind
+
+# Descriptive yeast
+# pdf('../msct_plots/yeast_raw_descr.pdf', width = 10, height = 5)
+ggarrange(yedens, yedensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# dev.off()
+
 hudens <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
   ggplot(aes(x = dist, y = sp_to, fill = sp_to)) +
@@ -37,6 +53,22 @@ hudens <- hudat %>%
 
 # pdf('../msct_plots/ggridg_seed2sp_human.pdf', width = 2.5, height = 7)
 hudens
+# dev.off()
+
+hudensind <- hudat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
+  ggplot(aes(x = dist, fill = sp_to, colour = sp_to)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  xlim(0, 5) +
+  xlab('Distance to H. sapiens') +
+  ylab('Density') +
+  facet_wrap(~sp_to, scales = 'free_y')
+
+hudensind
+
+# Descriptive human
+# pdf('../msct_plots/human_raw_descr.pdf', width = 10, height = 5)
+ggarrange(hudens, hudensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 # pdf('../msct_plots/ggridg_seed2sp_both.pdf', width = 5, height = 7)
@@ -106,7 +138,6 @@ hundplot <- ggplot(hudat, aes(ndist_A, colour = sp_to)) +
 ggarrange(hudplot, hundplot, labels = 'auto', align = 'hv')
 # dev.off()
 
-
 yejoined <- ggplot(yedat, aes(ndist_A)) +
   geom_density() +
   xlim(0, quantile(yedat$ndist_A, 0.99)) +
@@ -159,4 +190,9 @@ ggarrange(yespphyp, huspphyp, labels = 'auto', align = 'hv')
 
 # pdf('../msct_plots/spphy_n_both.pdf', width = 8.4, height = 3.15)
 ggarrange(yespphynp, huspphynp, labels = 'auto', align = 'hv')
+# dev.off()
+
+# pdf('../msct_plots/sptree.pdf', width = 7.5, height = 5.5)
+ggarrange(yespphyp, huspphyp, yespphynp, huspphynp,
+          labels = 'auto', align = 'hv')
 # dev.off()
