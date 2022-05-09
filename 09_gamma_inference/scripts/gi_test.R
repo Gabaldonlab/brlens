@@ -10,6 +10,8 @@ library(coda)
 library(ggmcmc)
 library(tidyr)
 library(wesanderson)
+library(dplyr)
+library(cumstats)
 
 theme_set(theme_bw())
 
@@ -65,6 +67,10 @@ model_text <- 'model{
     y[i] ~ dgamma(a, b)
   }
   
+  m <- a / b
+  v <- a / b^2
+  mo <- (a - 1) / b
+  
   # Prior distributions
   a ~ dunif(0, 100)
   b ~ dunif(0, 100)
@@ -79,7 +85,7 @@ model_jags <- jags.model(textConnection(model_text),
                          n.chains = 3)
 
 post <- coda.samples(model_jags, 
-                     variable.names = c('a', 'b'), 
+                     variable.names = c('a', 'b', 'm', 'v', 'mo'), 
                      n.iter = 1000)
 
 summary(post)
@@ -96,7 +102,7 @@ ggs_diagnostics(post_df)
 
 ggplot(post_df, aes(x = value, colour = Chain)) +
   geom_density() +
-  geom_point(aes(y = 0), alpha = 0.1) +
+  # geom_point(aes(y = 0), alpha = 0.1) +
   facet_wrap(~Parameter, scales = 'free') +
   scale_color_manual(values = wes_palette('FantasticFox1'))
 
@@ -122,5 +128,30 @@ ggplot(autocor_df, aes(x = Lag, y = Autocorrelation, colour = Chain)) +
   facet_grid(Parameter ~ Chain) +
   # xlim(0, 50) +
   scale_color_manual(values = wes_palette('FantasticFox1'))
+
+# Calculate the mean of the chain
+D <- post_df
+dm.m <- D %>%
+  dplyr::group_by(Parameter, Chain) %>%
+  dplyr::summarize(m=mean(value))
+# Calculate the running mean
+# Force the object to be sorted by Parameter, and hence avoid 'rm' calculation
+# to be wrong
+dm.rm <- D %>%
+  arrange(Parameter, Iteration) %>%
+  group_by(Parameter, Chain) %>%
+  mutate(rm = cumsum(value) / Iteration,
+         sd = sqrt(cumvar(value)),
+         up = rm + sd,
+         do = rm - sd)
+
+ggplot(dm.rm, aes(x = Iteration, y = rm, colour = as.factor(Chain))) +
+  geom_line() +
+  geom_line(aes(y = up), lty = 3, show.legend = FALSE) +
+  geom_line(aes(y = do), lty = 3, show.legend = FALSE) +
+  facet_grid(Parameter ~ Chain, scales = 'free') +
+  geom_hline(aes(yintercept = m), dm.m, lty = 4, size = 0.3) +
+  ylab('Running mean') +
+  labs(colour = 'Chain')
 
 ggs_running(post_df)
