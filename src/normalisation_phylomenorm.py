@@ -30,13 +30,7 @@ def subtree_tt_ref(tree, tid):
 
     Args:
         tree (Phylotree): phylome tree
-    # rmean = np.mean(rdist)
-    # rmed = np.median(rdist)
-    # rskew = stats.skew(rdist)
-    # rkurt = stats.kurtosis(rdist)
-    # rsd = st.stdev(rdist)
-    #
-    # rwidth = sum(rdist)
+
     Returns:
         dict: set of basic descriptive statistics of the lengths in the subtree
 

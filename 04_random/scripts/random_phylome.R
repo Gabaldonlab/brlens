@@ -68,18 +68,36 @@ ggtree(t) +
 
 rp <- rp +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  xlab('Density') +
-  ylab('Distance')
+  ylab('Density') +
+  xlab('Distance')
 
 np <- ggplot() +
   geom_line(aes(0:400/100, dgamma(0:400/100, 3, 2))) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  xlab('Density') +
-  ylab('Distance')
+  ylab('Density') +
+  xlab('Normalised distance')
 
-pdf('../msct_plots/', width = 8, height = 2)
+# pdf('../outputs/densities_example.pdf', width = 8.3, height = 3)
 ggarrange(rp, np, align = 'hv', labels = 'auto')
-dev.off()
+# dev.off()
+
+set.seed(0233201384)
+t <- rtree(20)
+
+t$edge.length[which(t$edge.length < quantile(t$edge.length, 0.99))] <- t$edge.length[which(t$edge.length < quantile(t$edge.length, 0.99))] * 0.05
+
+# pdf('../outputs/hr_tree.pdf', width = 2, height = 6)
+ggtree(t)
+# dev.off()
+
+set.seed(0233201384)
+t <- rtree(20)
+
+t$edge.length[which(t$edge.length > quantile(t$edge.length, 0.05))] <- t$edge.length[which(t$edge.length > quantile(t$edge.length, 0.05))] * 5
+
+# pdf('../outputs/lr_tree.pdf', width = 2, height = 6)
+ggtree(t)
+# dev.off()
 
 p <- c()
 for (i in 1:9) {
