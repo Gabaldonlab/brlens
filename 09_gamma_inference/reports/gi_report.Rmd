@@ -1,0 +1,161 @@
+---
+title: "Gamma inference"
+author: "Moisès Bernabeu"
+# date: "5/10/2022"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.width = 5, message = FALSE, warning = FALSE,
+                      fig.height = 3.3, out.width='60%', fig.align = 'center')
+
+library(knitr)
+library(kableExtra)
+
+library(ggplot2)
+library(ggpubr)
+library(rjags)
+library(coda)
+library(ggmcmc)
+library(tidyr)
+library(wesanderson)
+library(dplyr)
+library(cumstats)
+
+theme_set(theme_bw())
+
+load('../outputs/post_test.RData')
+source('../scripts/mcmc_funs.R')
+pal <- c('steelblue', 'darkorange3', 'chartreuse3')
+```
+
+# Sample
+```{r, eval=FALSE}
+model_text <- 'model{
+  # Likelihood
+  for (i in 1:n) {
+    y[i] ~ dgamma(a, b)
+  }
+  
+  m <- a / b
+  v <- a / b^2
+  mo <- (a - 1) / b
+  
+  # Prior distributions
+  a ~ dunif(0, 100)
+  b ~ dunif(0, 100)
+}'
+
+set.seed(1)
+y <- rgamma(1000, 2, 4)
+
+datlist <- list(y = y, n = length(y))
+
+model_jags <- jags.model(textConnection(model_text), 
+                         data = datlist,
+                         n.chains = 3)
+
+post <- coda.samples(model_jags, 
+                     variable.names = c('a', 'b', 'm', 'v', 'mo'), 
+                     n.iter = 10000)
+
+# save(y, post, file = '../outputs/post_test.RData')
+```
+
+```{r, fig.width=10, out.width='80%', fig.cap='Histogram and density plot.'}
+a <- ggplot() +
+  geom_histogram(aes(x = y), alpha = 0.6, col = 'steelblue', fill = 'steelblue')
+b <- ggplot() +
+  geom_density(aes(x = y), alpha = 0.6, col = 'steelblue', fill = 'steelblue')
+
+ggarrange(a, b, labels = 'auto')
+```
+
+# JAGS model
+
+```{r, echo=TRUE, eval=FALSE}
+model{
+  # Likelihood
+  for (i in 1:n) {
+    y[i] ~ dgamma(a, b)
+  }
+  
+  # Transformation and interest values
+  m <- a / b
+  v <- a / b^2
+  mo <- (a - 1) / b
+  
+  # Prior distributions
+  a ~ dunif(0, 100)
+  b ~ dunif(0, 100)
+}
+```
+
+# Sampling and results
+
+## Posterior distributions
+`a`, `b`, `m`, `mo` and `v` are the $\alpha$ and $\beta$ parameters, the mean, the mode and the variance respectively.
+
+```{r, fig.width=7, fig.height=3.2, out.width='90%', fig.cap='Posterior distributions densities for each parameter and in colors we show the chains.'}
+post_list <- mcmc.list(post)
+post_df <- as.data.frame(ggs(post_list))
+post_df$Chain <- as.factor(post_df$Chain)
+
+ggplot(post_df, aes(x = value, colour = Chain)) +
+  geom_density() +
+  # geom_point(aes(y = 0), alpha = 0.1) +
+  facet_wrap(~Parameter, scales = 'free') +
+  scale_color_manual(values = pal)
+```
+
+## Traceplots
+```{r, fig.width=7, fig.height=3.2, out.width='90%', fig.cap='Traceplots for each parameter, in colors we show the chains.'}
+ggplot(post_df, aes(x = Iteration, y = value, colour = Chain)) +
+  geom_line() +
+  facet_wrap(~Parameter, scales = 'free') +
+  scale_color_manual(values = wes_palette('FantasticFox1'))
+```
+
+## Diagnostic statistics
+```{r}
+diagdf <- as.data.frame(ggs_diagnostics(post_df))
+
+summ <- summary(post)
+
+summdf <- cbind(summ$statistics[, 1:2], 'R' = gelman.diag(post)[[1]][, 1],
+                'Effective size' = effectiveSize(post))
+
+kbl(round(summdf, 3), booktabs = T, caption = 'Summary statistics of the parameters posterior distributions.') %>%
+  kable_styling(latex_options = c('striped', 'hold_position'),
+                full_width = F, position = 'center')
+```
+
+
+## Autocorrelation
+```{r, fig.width=7, fig.height=6}
+post_ac <- get_ac_df(post_df, 250)
+
+ggplot(post_ac, aes(x = Lag, y = Autocorrelation, colour = Chain)) +
+  geom_line() +
+  facet_grid(Parameter ~ Chain) +
+  # xlim(0, 50) +
+  scale_color_manual(values = pal)
+```
+
+# Estimates of the mean per iteration
+```{r, fig.width=7, fig.height=6}
+post_means <- get_full_means(post_df)
+post_running <- get_running(post_df)
+
+ggplot(post_running, aes(x = Iteration, y = rm, colour = as.factor(Chain))) +
+  geom_line() +
+  # geom_line(aes(y = up), lty = 3, show.legend = FALSE) +
+  # geom_line(aes(y = do), lty = 3, show.legend = FALSE) +
+  facet_grid(Parameter ~ Chain, scales = 'free') +
+  geom_hline(aes(yintercept = m), post_means, lty = 4, size = 0.3) +
+  ylab('Running mean') +
+  labs(colour = 'Chain')
+```
+
