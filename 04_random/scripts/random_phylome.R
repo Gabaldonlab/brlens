@@ -8,6 +8,7 @@ library(treeio)
 library(ape)
 library(ggplot2)
 library(gridExtra)
+library(ggpubr)
 
 theme_set(theme_bw())
 
@@ -82,11 +83,16 @@ np <- ggplot() +
 ggarrange(rp, np, align = 'hv', labels = 'auto')
 # dev.off()
 
-# pdf('../compositions/p11_timetree.pdf', width = 7.5, height = 4)
-ggarrange(timetree, rp, labels = 'auto', widths = c(1, 2))
+rate <- ggplot() +
+  geom_line(aes(0:400/100, y = dmixgamma(0:400/100))) +
+  xlab('Rate') +
+  ylab('Density')
+
+# pdf('../compositions/p11_timetree.pdf', width = 7.5, height = 3.5)
+ggarrange(timetree, rate, labels = 'auto', widths = c(1, 2))
 # dev.off()
 
-dmixgamma <- function(x, alpha = c(), beta = c()) {
+dmixgamma <- function(x, alpha = c(23, 1), beta = c(12, 3)) {
   k <- length(alpha)
   n <- length(x)
   rowSums(vapply(1:k, function(i) 1 / k * dgamma(x, alpha[i], beta[i]), numeric(n)))
