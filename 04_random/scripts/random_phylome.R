@@ -56,10 +56,11 @@ t_labs <- c('tau[A]', 'tau[B]', 'tau[C]', 'tau[D]', 'tau[E]', 'R',
 l_labs <- c('l[A]', 'l[B]', 'l[C]', 'l[D]', 'l[E]', 'R',
             'l[1]', 'l[2]', 'l[3]')
 
-ggtree(t) +
+timetree <- ggtree(t) +
   geom_tiplab() +
-  geom_label2(aes(x = branch, label = t_labs), parse = TRUE) +
-  labs(title = 'Species tree')
+  geom_text(aes(x = branch, label = t_labs),
+            parse = TRUE, nudge_y = 0.15, size = 4)
+timetree
 
 ggtree(t) +
   geom_tiplab() +
@@ -80,6 +81,23 @@ np <- ggplot() +
 # pdf('../outputs/densities_example.pdf', width = 8.3, height = 3)
 ggarrange(rp, np, align = 'hv', labels = 'auto')
 # dev.off()
+
+# pdf('../compositions/p11_timetree.pdf', width = 7.5, height = 4)
+ggarrange(timetree, rp, labels = 'auto', widths = c(1, 2))
+# dev.off()
+
+dmixgamma <- function(x, alpha = c(), beta = c()) {
+  k <- length(alpha)
+  n <- length(x)
+  rowSums(vapply(1:k, function(i) 1 / k * dgamma(x, alpha[i], beta[i]), numeric(n)))
+}
+
+# random generation
+rmixgamma <- function(n, pi, alpha, beta) {
+  k <- sample.int(length(pi), n, replace = TRUE, prob = pi)
+  rgamma(n, alpha[k], beta[k])
+}
+
 
 set.seed(0233201384)
 t <- rtree(20)
