@@ -81,11 +81,25 @@ yendens <- yedat %>%
   ggplot(aes(x = ndist_A, y = sp_to, fill = sp_to)) +
   geom_density_ridges2(show.legend = FALSE) +
   xlim(0, 5) +
-  xlab('Distance to S. cerevisiae') +
+  xlab('Norm. dist. to S. cerevisiae') +
   ylab('Density')
+
+yendensind <- yedat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
+  ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  xlim(0, 7) +
+  xlab('Normalised distance to S. cerevisiae') +
+  ylab('Density') +
+  facet_wrap(~sp_to, scales = 'free_y')
+yendensind
 
 # pdf('../msct_plots/ggridg_seed2sp_n_yeast.pdf', width = 2.5, height = 7)
 yendens
+# dev.off()
+
+# pdf('../msct_plots/yeast_norm_descr.pdf', width = 10, height = 5)
+ggarrange(yendens, yendensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 hundens <- hudat %>%
@@ -93,17 +107,34 @@ hundens <- hudat %>%
   ggplot(aes(x = ndist_A, y = sp_to, fill = sp_to)) +
   geom_density_ridges2(show.legend = FALSE) +
   xlim(0, 10) +
-  xlab('Distance to H. sapiens') +
+  xlab('Norm. dist. to H. sapiens') +
   ylab('Density')
 
 # pdf('../msct_plots/ggridg_seed2sp_n_human.pdf', width = 2.5, height = 7)
 hundens
 # dev.off()
 
+
+hundensind <- hudat %>%
+  mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
+  ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
+  geom_density(show.legend = FALSE, alpha = 0.6) +
+  xlim(0, 10) +
+  xlab('Normalised distance to H. sapiens') +
+  ylab('Density') +
+  facet_wrap(~sp_to, scales = 'free_y')
+
+hundensind
+
+# pdf('../msct_plots/human_norm_descr.pdf', width = 10 * 1.5, height = 5 * 1.5)
+ggarrange(hundens, hundensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# dev.off()
+
 # pdf('../msct_plots/ggridg_seed2sp_n_both.pdf', width = 5, height = 7)
 ggarrange(yendens, hundens, labels = 'auto', align = 'hv')
 # dev.off()
 
+# Joint densities ----
 yedplot <- ggplot(yedat, aes(dist, colour = sp_to)) +
   geom_density(show.legend = FALSE) +
   xlim(0, quantile(yedat$dist, 0.999)) +
@@ -195,4 +226,10 @@ ggarrange(yespphynp, huspphynp, labels = 'auto', align = 'hv')
 # pdf('../msct_plots/sptree.pdf', width = 7.5, height = 5.5)
 ggarrange(yespphyp, huspphyp, yespphynp, huspphynp,
           labels = 'auto', align = 'hv')
+# dev.off()
+
+# pdf('../outputs/normalised_densities.pdf', width = 6.3, height = 2.3)
+ggarrange(yendplot + xlab('Yeast to sp. norm. dist.'),
+          hundplot + xlab('Human to sp. norm. dist.'),
+          align = 'hv', labels = 'auto')
 # dev.off()
