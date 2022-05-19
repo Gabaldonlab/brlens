@@ -2,6 +2,8 @@
 # Moisès Bernabeu
 # May 2022
 
+# https://sourceforge.net/p/mcmc-jags/discussion/610036/thread/585b0e4c/
+
 require(coda)
 require(ggmcmc)
 require(tidyr)

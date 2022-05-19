@@ -169,6 +169,10 @@ hundplot <- ggplot(hudat, aes(ndist_A, colour = sp_to)) +
 ggarrange(hudplot, hundplot, labels = 'auto', align = 'hv')
 # dev.off()
 
+# pdf('~/Desktop/densplots.pdf', width = 8, height = 5.5)
+ggarrange(yedplot, yendplot, hudplot, hundplot, labels = 'auto', align = 'hv')
+# dev.off()
+
 yejoined <- ggplot(yedat, aes(ndist_A)) +
   geom_density() +
   xlim(0, quantile(yedat$ndist_A, 0.99)) +
