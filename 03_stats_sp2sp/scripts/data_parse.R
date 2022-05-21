@@ -43,5 +43,24 @@ yespt <- yespt[which(yespt$mrca_type == 'S' & yespt$sp_to != 'YEAST' &
 huspt <- huspt[which(huspt$mrca_type == 'S' & huspt$sp_to != 'HUMAN' &
                        (huspt$sp_to == 'HUMAN' | huspt$from_sp == 'HUMAN')), ]
 
+# Filter bad trees
+yewdthratio <- yedat$whole_width / yedat$norm_width
+yeq099 <- quantile(yewdthratio, 0.99)
+
+huwdthratio <- hudat$whole_width / hudat$norm_width
+huq099 <- quantile(huwdthratio, 0.99)
+
+par(mfrow = c(1, 2))
+hist(yewdthratio)
+abline(v = yeq099, col = 'red', lty = 4)
+hist(huwdthratio)
+abline(v = huq099, col = 'red', lty = 4)
+par(mfrow = c(1, 1))
+
+length(which(yedat$whole_width / yedat$norm_width >= yeq099))
+yedat <- yedat[-which(yedat$whole_width / yedat$norm_width >= yeq099), ]
+
+length(which(hudat$whole_width / hudat$norm_width >= huq099))
+hudat <- hudat[-which(hudat$whole_width / hudat$norm_width >= huq099), ]
 
 save(hudat, yedat, yespt, huspt, file = '../data/seed2sp_dist.Rdata')
