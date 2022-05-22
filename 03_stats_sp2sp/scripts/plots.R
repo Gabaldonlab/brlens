@@ -106,7 +106,7 @@ hundens <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
   ggplot(aes(x = ndist_A, y = sp_to, fill = sp_to)) +
   geom_density_ridges2(show.legend = FALSE) +
-  xlim(0, 10) +
+  xlim(0, 15) +
   xlab('Norm. dist. to H. sapiens') +
   ylab('Density')
 
@@ -119,7 +119,7 @@ hundensind <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
   ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, 10) +
+  xlim(0, 15) +
   xlab('Normalised distance to H. sapiens') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')

@@ -45,10 +45,10 @@ huspt <- huspt[which(huspt$mrca_type == 'S' & huspt$sp_to != 'HUMAN' &
 
 # Filter bad trees
 yewdthratio <- yedat$whole_width / yedat$norm_width
-yeq099 <- quantile(yewdthratio, 0.99)
+yeq099 <- quantile(yewdthratio, 0.9)
 
 huwdthratio <- hudat$whole_width / hudat$norm_width
-huq099 <- quantile(huwdthratio, 0.99)
+huq099 <- quantile(huwdthratio, 0.9)
 
 par(mfrow = c(1, 2))
 hist(yewdthratio)
