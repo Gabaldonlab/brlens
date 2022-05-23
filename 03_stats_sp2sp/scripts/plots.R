@@ -31,7 +31,7 @@ yedensind <- yedat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
   ggplot(aes(x = dist, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, 5) +
+  xlim(0, quantile(yedat$dist, 0.999)) +
   xlab('Distance to S. cerevisiae') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')
@@ -39,7 +39,7 @@ yedensind <- yedat %>%
 yedensind
 
 # Descriptive yeast
-# pdf('../msct_plots/yeast_raw_descr.pdf', width = 10, height = 5)
+# pdf('../msct_plots/yeast_raw_descr.pdf', width = 11.5, height = 5.75)
 ggarrange(yedens, yedensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
@@ -59,7 +59,7 @@ hudensind <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = dist, .fun = median)) %>%
   ggplot(aes(x = dist, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, 5) +
+  xlim(0, quantile(hudat$dist, 0.999)) +
   xlab('Distance to H. sapiens') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')
@@ -67,7 +67,7 @@ hudensind <- hudat %>%
 hudensind
 
 # Descriptive human
-# pdf('../msct_plots/human_raw_descr.pdf', width = 10, height = 5)
+# pdf('../msct_plots/human_raw_descr.pdf', width = 11.5, height = 5.75)
 ggarrange(hudens, hudensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
@@ -88,7 +88,7 @@ yendensind <- yedat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
   ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, 7) +
+  xlim(0, quantile(yedat$ndist_A, 0.99)) +
   xlab('Normalised distance to S. cerevisiae') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')
@@ -98,7 +98,7 @@ yendensind
 yendens
 # dev.off()
 
-# pdf('../msct_plots/yeast_norm_descr.pdf', width = 10, height = 5)
+# pdf('../msct_plots/yeast_norm_descr.pdf', width = 11.5, height = 5.75)
 ggarrange(yendens, yendensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
@@ -119,14 +119,14 @@ hundensind <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
   ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, 15) +
+  xlim(0, quantile(hudat$ndist_A)) +
   xlab('Normalised distance to H. sapiens') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')
 
 hundensind
 
-# pdf('../msct_plots/human_norm_descr.pdf', width = 10 * 1.5, height = 5 * 1.5)
+# pdf('../msct_plots/human_norm_descr.pdf', width = 11.5, height = 5.75)
 ggarrange(hundens, hundensind, align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
