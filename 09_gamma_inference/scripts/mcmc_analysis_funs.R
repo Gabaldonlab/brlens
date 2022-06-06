@@ -1,0 +1,49 @@
+# Functions to analyse MCMC
+# Moisès Bernabeu
+# May 2022
+
+# https://sourceforge.net/p/mcmc-jags/discussion/610036/thread/585b0e4c/
+
+require(coda)
+require(ggmcmc)
+require(tidyr)
+require(dplyr)
+require(cumstats)
+require(ggplot2)
+require(ggpubr)
+
+theme_set(theme_bw())
+
+get_ac_df <- function(mcmc_df, nLags = 50) {
+  # Retrieve autocorrelation per parameter and chain
+  wc.ac <- mcmc_df %>%
+    group_by(Parameter, Chain) %>%
+    do(ac(.$value, nLags))
+
+  return(wc.ac)
+}
+
+
+get_full_means <- function(mcmc_df) {
+  # Estimates of the mean by iteration
+  dm.m <- mcmc_df %>%
+    group_by(Parameter, Chain) %>%
+    summarize(m = mean(value))
+  
+  return(dm.m)
+}
+
+get_running <- function(mcmc_df) {
+  # Calculate the running mean
+  # Force the object to be sorted by Parameter, and hence avoid 'rm' calculation
+  # to be wrong
+  dm.rm <- mcmc_df %>%
+    arrange(Parameter, Iteration) %>%
+    group_by(Parameter, Chain) %>%
+    mutate(rm = cumsum(value) / Iteration,
+           sd = sqrt(cumvar(value)),
+           up = rm + sd,
+           do = rm - sd)
+  
+  return(dm.rm)
+}

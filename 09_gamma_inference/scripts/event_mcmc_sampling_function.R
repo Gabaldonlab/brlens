@@ -4,8 +4,8 @@
 
 require(rjags)
 
-mcmcfun <- function(spto, dat, nchains = 3, niter = 1000,
-                    thin = 3, unifmax = 100) {
+mcmcfun <- function(y, nchains = 3, niter = 1000,
+                    thin = 3, unifmax = 100, oname) {
   # Model definition
   model_text <- sprintf('model{
     # Likelihood
@@ -15,7 +15,7 @@ mcmcfun <- function(spto, dat, nchains = 3, niter = 1000,
     
     m <- a / b
     v <- a / b^2
-    mo <- (a - 1) / b
+    mo <- ifelse(a <= 1, 0, (a - 1) / b)
     
     # Prior distributions
     a ~ dunif(0, %d)
@@ -23,7 +23,6 @@ mcmcfun <- function(spto, dat, nchains = 3, niter = 1000,
   }', unifmax, unifmax)
   
   # Data generation
-  y <- dat[which(dat$sp_to == spto & dat$ndist_A != 0), 'ndist_A']
   N <- length(y)
   
   datlist <- list(y = y, n = N)
@@ -41,9 +40,11 @@ mcmcfun <- function(spto, dat, nchains = 3, niter = 1000,
                        thin = thin)
   
   # Assigning species name to the posterior sample
-  assign(sprintf('%s_mcmc', spto), post)
+  assign(sprintf('%s_mcmc', oname), post)
   
   # Saving the posterior sample and its information into RData file
-  save(list = c('N', 'nchains', 'niter', 'thin', 'unifmax', sprintf('%s_mcmc', spto)),
-       file = sprintf('../outputs/jags_%s.RData', sprintf('%s_mcmc', spto)))
+  save(list = c('N', 'nchains', 'niter', 'thin', 'unifmax', sprintf('%s_mcmc', oname)),
+       file = sprintf('../outputs/jags_%s_mcmc.RData', oname))
+  
+  return(post)
 }

@@ -237,3 +237,33 @@ ggarrange(yendplot + xlab('Yeast to sp. norm. dist.'),
           hundplot + xlab('Human to sp. norm. dist.'),
           align = 'hv', labels = 'auto')
 # dev.off()
+
+yedat$from_to <- paste(yedat$from_sp, yedat$to_sp, sep = '-')
+yedat_sum <- yedat %>%
+  group_by(sp_to) %>%
+  summarise('dist' = median(dist),
+            'ndist_A' = median(ndist_A, na.rm = TRUE),
+            'sp' = mean(sp),
+            'dupl' = mean(dupl))
+
+a <- ggplot(yedat_sum, aes(dupl / (sp + dupl), ndist_A)) +
+  geom_point() +
+  xlab('Duplication rate') +
+  ylab('S. cerevisiae to sp. norm. dist.')
+
+hudat$from_to <- paste(hudat$from_sp, hudat$to_sp, sep = '-')
+hudat_sum <- hudat %>%
+  group_by(sp_to) %>%
+  summarise('dist' = median(dist),
+            'ndist_A' = median(ndist_A, na.rm = TRUE),
+            'sp' = mean(sp),
+            'dupl' = mean(dupl))
+
+b <- ggplot(hudat_sum, aes(dupl / (sp + dupl), ndist_A)) +
+  geom_point() +
+  xlab('Duplication rate') +
+  ylab('H. sapiens to sp. norm. dist.')
+
+# pdf('../msct_plots/duprate.pdf', width = 9, height = 3)
+ggarrange(a, b, labels = 'auto', align = 'hv')
+# dev.off()

@@ -11,6 +11,13 @@ dat <- read.csv('../outputs/0076_dist.csv')
 
 dat <- dat[-which(dat$vert_dist == dat$met_dist), ]
 
+dat$wnwidthratio <- dat$whole_width / dat$norm_width
+
+hist(wnwidthratio, breaks = 400, xlim = c(0, 100))
+abline(v = quantile(wnwidthratio, 0.95))
+
+dat <- dat[-which(wnwidthratio >= quantile(wnwidthratio, 0.95)), ]
+
 rdistp <- ggplot(dat) +
   geom_density(aes(x = vert_dist, col = 'vertebrates')) +
   geom_density(aes(x = met_dist, col = 'metazoan')) +
@@ -173,3 +180,25 @@ for (tree in trees) {
 
 do.call("grid.arrange", c(p, ncol=7))
 do.call("grid.arrange", p)
+
+ggplot(dat, aes(n_dupl / n_sp, nfactor)) +
+  geom_point() +
+  ylim(0, 25) +
+  xlab('Duplication rate') +
+  ylab('Vertebrate norm. dist.')
+
+a <- ggplot(dat, aes(n_dupl / n_sp, vert_ndist)) +
+  geom_point() +
+  ylim(0, 25) +
+  xlab('Duplication rate') +
+  ylab('Vertebrate norm. dist.')
+
+b <- ggplot(dat, aes(n_dupl / n_sp, met_ndist)) +
+  geom_point() +
+  ylim(0, 25) +
+  xlab('Duplication rate') +
+  ylab('Metazoan norm. dist.')
+
+pdf('../outputs/event_duprate.pdf', width = 9, height = 3)
+ggarrange(a, b, align = 'hv', labels = 'auto')
+dev.off()
