@@ -1,4 +1,4 @@
-# Plottin inferred Gamma distributions
+# Plotting inferred Gamma distributions
 # Moisès Bernabeu
 # Barcelona, June 2022
 
@@ -22,18 +22,23 @@ evpars <- by(evmcmcg$value, paste(evmcmcg$event, evmcmcg$param), mean)
 pal <- gg_color_hue(2)
 x <- 0:400 / 100
 
-# pdf('../ev_est_gamma.pdf', width = 5, height = 3.5)
+pdat <- rbind(data.frame(x = x, density = dgamma(x, evpars['met a'], evpars['met b']), event = 'Metazoans'),
+              data.frame(x = x, density = dgamma(x, evpars['vert a'], evpars['vert b']), event = 'Vertebrates'))
+
+# pdf('../ev_est_gamma.pdf', width = 6, height = 3.4)
 ggplot() +
   geom_histogram(aes(x = evdat$met_ndist, y = ..density..),
                  col = pal[1], fill = pal[1], alpha = 0.6) +
-  geom_line(aes(x, dgamma(x, evpars['met a'], evpars['met b'])),
-            col = pal[1], size = 1) +
+  # geom_line(aes(x, dgamma(x, evpars['met a'], evpars['met b'])),
+  #           col = pal[1], size = 1) +
   geom_histogram(aes(x = evdat$vert_ndist, y = ..density..),
                  col = pal[2], fill = pal[2], alpha = 0.6) +
-  geom_line(aes(x, dgamma(x, evpars['vert a'], evpars['vert b'])),
-            col = pal[2], size = 1) +
+  # geom_line(aes(x, dgamma(x, evpars['vert a'], evpars['vert b'])),
+  #           col = pal[2], size = 1) +
+  geom_line(data = pdat, aes(x, density, col = event), size = 1) +
   xlab('Normalised distance') +
   ylab('Density') +
+  labs(colour = 'Event') +
   xlim(0, 4)
 # dev.off()
 
