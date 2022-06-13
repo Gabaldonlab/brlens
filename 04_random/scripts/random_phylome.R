@@ -138,7 +138,7 @@ rtrees <- rtreeset(t, n = 1000, mean_rate = 1)
 
 # plot densitrees
 ggdensitree(sample(rtrees, 100), alpha = 0.3, align.tips = TRUE) +
-  geom_tiplab(align = TRUE) + a
+  geom_tiplab(align = TRUE)
 
 # Write trees ----
 write.tree(rtrees, file = '../outputs/rand_phylome.txt')

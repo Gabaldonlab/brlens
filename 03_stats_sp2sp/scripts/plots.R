@@ -12,7 +12,7 @@ library(dplyr)
 theme_set(theme_bw())
 
 # Plots ----
-load('../data/seed2sp_dist.Rdata')
+load('../data/seed2sp_dist.RData')
 
 # Density plots with ggridges
 yedens <- yedat %>%
@@ -39,8 +39,10 @@ yedensind <- yedat %>%
 yedensind
 
 # Descriptive yeast
-# pdf('../msct_plots/yeast_raw_descr.pdf', width = 11.5, height = 5.75)
-ggarrange(yedens, yedensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# pdf('../msct_plots/yeast_raw_descr.pdf', width = 10, height = 5)
+ggarrange(yedens + theme(axis.title = element_text(size = 15)),
+          yedensind + theme(axis.title = element_text(size = 15)),
+          align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 hudens <- hudat %>%
@@ -67,8 +69,10 @@ hudensind <- hudat %>%
 hudensind
 
 # Descriptive human
-# pdf('../msct_plots/human_raw_descr.pdf', width = 11.5, height = 5.75)
-ggarrange(hudens, hudensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# pdf('../msct_plots/human_raw_descr.pdf', width = 10, height = 5)
+ggarrange(hudens + theme(axis.title = element_text(size = 15)),
+          hudensind + theme(axis.title = element_text(size = 15)),
+          align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 # pdf('../msct_plots/ggridg_seed2sp_both.pdf', width = 5, height = 7)
@@ -98,8 +102,10 @@ yendensind
 yendens
 # dev.off()
 
-# pdf('../msct_plots/yeast_norm_descr.pdf', width = 11.5, height = 5.75)
-ggarrange(yendens, yendensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# pdf('../msct_plots/yeast_norm_descr.pdf', width = 10, height = 5)
+ggarrange(yendens + theme(axis.title = element_text(size = 15)),
+          yendensind + theme(axis.title = element_text(size = 15)),
+          align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 hundens <- hudat %>%
@@ -119,15 +125,17 @@ hundensind <- hudat %>%
   mutate(sp_to = fct_reorder(.f = sp_to, .x = ndist_A, .fun = median)) %>%
   ggplot(aes(x = ndist_A, fill = sp_to, colour = sp_to)) +
   geom_density(show.legend = FALSE, alpha = 0.6) +
-  xlim(0, quantile(hudat$ndist_A)) +
+  xlim(0, 15) +
   xlab('Normalised distance to H. sapiens') +
   ylab('Density') +
   facet_wrap(~sp_to, scales = 'free_y')
 
 hundensind
 
-# pdf('../msct_plots/human_norm_descr.pdf', width = 11.5, height = 5.75)
-ggarrange(hundens, hundensind, align = 'v', widths = c(1, 4), labels = 'auto')
+# pdf('../msct_plots/human_norm_descr.pdf', width = 10, height = 5)
+ggarrange(hundens + theme(axis.title = element_text(size = 15)),
+          hundensind + theme(axis.title = element_text(size = 15)),
+          align = 'v', widths = c(1, 4), labels = 'auto')
 # dev.off()
 
 # pdf('../msct_plots/ggridg_seed2sp_n_both.pdf', width = 5, height = 7)
