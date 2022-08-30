@@ -1,1 +1,3 @@
-# Phylogenetic branch lengths distribution
+# Phylogenetic distances distribution
+
+![](pipeline.png)

@@ -1,35 +1,59 @@
+#!/usr/bin/env python3
+
 import sys
-import os
-from glob import glob
+from utils import create_folder
+from optparse import OptionParser
 
-if not os.path.exists('splitted'):
-    os.mkdir('splitted')
 
-files = glob('outputs/*_best_trees.txt.gz')
+def main():
+    parser = OptionParser()
+    parser.add_option('-i', '--input', dest='ifile',
+                      help=('File with multiple trees in newick, each line has'
+                            ' the format: seed\tmodel\tlikelihood\tnewick'),
+                      metavar='<file.nwk>')
+    parser.add_option('-p', '--prefix', dest='prefix',
+                      help='Output prefix.',
+                      metavar='</path/to/dir/prefix> or <prefix>',
+                      default='dist_output')
+    (options, args) = parser.parse_args()
 
-for file in files:
-    print(file)
+    # Creating the output directory
+    odir = '../data/%s' % options.prefix
+    create_folder(odir)
+
+    file = options.ifile
+
+    print('Processing: %s' % file)
+
     ph_id = file.rsplit('/', 1)[1].split('_', 1)[0]
-    print(ph_id)
+
     fs = sys.getsizeof(open(file, 'r').read())
     opts = 500000
+
     if fs > opts:
         efno = fs / opts
         fmaxsize = efno / int(efno) * opts + 100
 
-    olines = ''
-    ofileno = 0
-    for line in open(file, 'r'):
-        print(ofileno)
-        if sys.getsizeof(olines) < fmaxsize:
-            olines += line
-        else:
-            ofile = open('splitted/%s_%s.txt' % (ph_id, ofileno), 'w')
-            ofile.write(olines)
-            ofile.close()
-            olines = ''
-            ofileno += 1
+        olines = ''
+        ofileno = 0
 
-    ofile = open('splitted/%s_%s.txt' % (ph_id, ofileno), 'w')
-    ofile.write(olines)
-    ofile.close()
+        for line in open(file, 'r'):
+            if sys.getsizeof(olines) < fmaxsize:
+                olines += line  # .decode('utf-8')
+            else:
+                print(ofileno, 'written')
+                ofile = open('%s/%s_%s.txt' % (odir, ph_id, ofileno), 'w')
+                ofile.write(olines)
+                ofile.close()
+                olines = line
+                ofileno += 1
+
+        ofile = open('%s/%s_%s.txt' % (odir, ph_id, ofileno), 'w')
+        ofile.write(olines)
+        ofile.close()
+    else:
+        print('File is not greater than 500 KB.')
+
+
+if __name__ == '__main__':
+    main()

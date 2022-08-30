@@ -8,44 +8,43 @@ join_normalise.py -- Phylome partitions join and calculate normalised distances
 
 Requirements: pandas
 
-Written by Moisès Bernabeu <moigil.bernabeu@gmail.com>
+Written by Moisès Bernabeu <moigil.bernabeu.sci@gmail.com>
 March 2022
 '''
 
 # Import libraries ----
 import pandas as pd
 from glob import glob
+from optparse import OptionParser
+
 
 # Script
 def main():
-    files = glob('../inphy_outputs/*_*_norm.csv')
+    parser = OptionParser()
+    parser.add_option('-i', '--input', dest='idir',
+                      help=('Directory with multiple get_distances outputs.'),
+                      metavar='<file.csv>')
+    parser.add_option('-p', '--prefix', dest='prefix',
+                      help='Output prefix.',
+                      metavar='</path/to/dir/prefix> or <prefix>',
+                      default='dist_output')
+    (options, args) = parser.parse_args()
+
+    files = glob('%s/*.csv' % options.idir)
     print(files)
 
-    ids = list()
+    i = 0
     for file in files:
-        ids.append(file.rsplit('/', 1)[1].split('_', 1)[0])
-    ids = set(ids)
+        print('Parsing: ', file)
 
-    for phyid in ids:
-        print('Parsing: ', phyid)
-        normfiles = glob('../inphy_outputs/%s*_norm.csv' % phyid)
-        distfiles = glob('../inphy_outputs/%s*_dist.csv' % phyid)
+        if i == 0:
+            distdf = pd.read_csv(file)
+        else:
+            distdf = pd.concat([distdf, pd.read_csv(file)])
 
-        for i, file in enumerate(distfiles):
-            if i == 0:
-                distdf = pd.read_csv(file)
-            else:
-                distdf = pd.concat([distdf, pd.read_csv(file)])
+        i += 1
 
-        distdf.to_csv('../inphy_outputs/%s_dist.csv' % phyid, index=False)
-
-        for i, file in enumerate(normfiles):
-            if i == 0:
-                normdf = pd.read_csv(file)
-            else:
-                normdf = pd.concat([normdf, pd.read_csv(file)])
-
-        normdf.to_csv('../inphy_outputs/%s_norm.csv' % phyid, index=False)
+    distdf.to_csv('%s/%s.csv' % (options.idir, options.prefix), index=False)
 
 
 if __name__ == '__main__':
