@@ -22,26 +22,26 @@ files the user will need will be:
 1. `node_data.tsv`: this file contains the species code (common in the trees and tables) belonging to the groups of interests (can be numbers as in the following example or names) in columns:
 
 ```
-26      27	    30	    44
-NA	    NA	    NA	    NA
-MONDO	NA	    NA	    NA
-CHOHO	CHOHO	NA	    NA
-ECHTE	ECHTE	NA	    NA
-LOXAF	LOXAF	NA	    NA
+26	  27	30	44
+NA	  NA	  NA	  NA
+MONDO	NA	  NA	  NA
+CHOHO	CHOHO	NA	  NA
+ECHTE	ECHTE	NA	  NA
+LOXAF	LOXAF	NA	  NA
 ERIEU	ERIEU	ERIEU	NA
 PTEVA	PTEVA	PTEVA	NA
 FELCA	FELCA	FELCA	NA
 PANPR	PANPR	PANPR	NA
 CANFA	CANFA	CANFA	NA
 HORSE	HORSE	HORSE	NA
-PIG	    PIG	    PIG	    NA
+PIG	  PIG	  PIG	  NA
 SHEEP	SHEEP	SHEEP	NA
 TUPGB	TUPGB	TUPGB	NA
 RABIT	RABIT	RABIT	NA
 SPETR	SPETR	SPETR	NA
 JACJA	JACJA	JACJA	NA
 MOUSE	MOUSE	MOUSE	NA
-RAT	    RAT	    RAT	    NA
+RAT	  RAT	  RAT	  NA
 PROCO	PROCO	PROCO	PROCO
 CARSF	CARSF	CARSF	CARSF
 PAPAN	PAPAN	PAPAN	PAPAN
@@ -119,3 +119,13 @@ To run the script on your `trees.nwk` file:
 ```bash
 python3 get_t2t_dist.py -i trees.nwk -c node_data.tsv -n 44 -t 2
 ```
+
+For obtaining a filtered set of `R` `data.frames` which can be used in
+the inference process, you have to run the [distances_filtering.R](distances_filtering.R):
+
+```bash
+Rscript distances_filtering.R
+```
+
+It creates a set of `RData` files which can be imported in the inference
+module.
