@@ -1,3 +1,4 @@
 test/
 outputs/
 __pycache__/
+.Rhistory
