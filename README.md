@@ -15,4 +15,4 @@ Once calculated the distances, we can perform the inference of the posterior dis
 In this project data visualisation has been done separately. However, for obtaining the plots shown in the paper you just need the outputs from the scripts found here.
 
 ## Data
-We deposited the data and the outputs of these scripts in a [Zenodo repository](www.zenodo.org).
+We deposited the data and the outputs of these scripts in a [Zenodo repository](https://zenodo.org).
