@@ -9,7 +9,7 @@ following this distribution.
 To infer the parameters $(\alpha, \beta)$ linked to this distribution 
 we used a JAGS, a Gibbs sampler which retrieves posterior samples of the
 parameters and some statistics of the distribution. We designed a series
-of functions which make this process easier. We also added the Normal
+of functions which make this process easier. We also added the Lognormal
 distribution model to assess the fitting in comparison to the Gamma one.
 
 The module is separated in 4 essential scripts:
@@ -42,7 +42,7 @@ running [get_t2t_dist.py](../01_distance_calculations/get_t2t_dist.py)
 and [get_t2in_dist.py](../01_distance_calculations/get_t2in_dist.py).
 
 For running the MCMC process which infers the posterior distribution
-of the Gamma and Normal distributions you have to run the following command:
+of the Gamma and Lognormal distributions you have to run the following command:
 
 ```bash
 Rscript exec_mcmc.R <filtered distanes RData> <data.frame name> <grouping column> <distances column> <number of independent chains> <number of iterations> <thinning> <uniform prior maximum> <burnin proportion 0-1> <subsample proportion 0-1> <group to analyse> <output folder>
