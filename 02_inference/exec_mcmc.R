@@ -1,21 +1,22 @@
 # MCMC sampling execution
 # Moisès Bernabeu
-# Barcelona, December 2022
+# Barcelona, November 2023
 
 library(stringr)
 library(coda)
+library(rjags)
 
 # Loading functions ----
 source('sampling.R')
 source('mcmc_analysis.R')
 
-# Loading arguments ----
+# Loading data
 args = commandArgs(trailingOnly=TRUE)
 
-datfile = args[1] # '../../06_inference/data/dist_data.RData'
-object = args[2] # 'fgnew'
-groupcol = args[3] # 'node'
-samplecol = args[4] # 'ndist'
+datfile = args[1]
+object = args[2]
+groupcol = args[3]
+samplecol = args[4]
 
 # Setting MCMC parameters
 nchains = as.numeric(args[5]) # 3
@@ -25,11 +26,11 @@ unifmax = as.numeric(args[8]) # 100
 burnin = as.numeric(args[9]) # 0.1
 subspl = as.numeric(args[10]) # 1
 
-# Setting the species to
-group = args[11] # T
+# Setting the species or event's node
+group = args[11]
 
 # Setting the output folder
-folder = args[12] # ../test/T
+folder = args[12]
 
 prefix_mcmc = sprintf('%s/mcmc/%s_%s', folder, group, str_replace(subspl, '\\.', ''))
 prefix_plots = sprintf('%s/plots/%s_%s', folder, group, str_replace(subspl, '\\.', ''))
@@ -60,8 +61,6 @@ if (subspl != 1) {
 }
 y1len <- length(y)
 
-y <- y / 2
-
 # Finishing when the subsampling implies less than 50 trees ---
 if (length(y) < 50) {
   stop(paste0('Not enough sequences trees to compute the inference ',
@@ -76,25 +75,28 @@ system.time(
 )
 
 system.time(
-  nmcmcout <- nmcmcfun(y = y, nchains, niter, 1, unifmax, group = group,
-                       prefix = prefix_mcmc, subspl = subspl)
+  lnmcmcout <- lnmcmcfun(y = y, nchains, niter, 1, unifmax, group = group,
+                         prefix = prefix_mcmc, subspl = subspl)
 )
 
 # Cleaning samples with the burn-in and thinning ----
 cl_gmcmcout <- window(gmcmcout, start = niter * burnin, end = niter, thin = thin)
-cl_nmcmcout <- window(nmcmcout, start = niter * burnin, end = niter, thin = thin)
+cl_lnmcmcout <- window(lnmcmcout, start = niter * burnin, end = niter, thin = thin)
 
 # Plotting inference results ----
 if ('fgnew' %in% ls()) {
-  nodes <- read.csv('/gpfs/projects/bsc40/current/mgil/documents/mammals_dating/05_dist_stats/data/node_labs.tsv', sep = '\t', row.names = 3)
-  # nodes <- read.csv('../../05_dist_stats/data/node_labs.tsv', sep = '\t', row.names = 3)
+  nodes <- read.csv('../data/node_labs.tsv', sep = '\t', row.names = 3)
   title <- nodes[group, 'Group']
 } else {
   title <- group
 }
-graphic_diagnostics(y, gmcmcout, nmcmcout, cl_gmcmcout, cl_nmcmcout, prefix_plots, title, subspl)
+
+distros <- list('gamma' = list('raw' = gmcmcout, 'clean' = cl_gmcmcout),
+                'lnorm' = list('raw' = lnmcmcout, 'clean' = cl_lnmcmcout))
+
+graphic_diagnostics(y, distros, prefix_plots, title, subspl)
 
 # Writing numeric diagnostics tables ----
 write.csv(numeric_diagnostics(cl_gmcmcout), file = sprintf('%s_gam.csv', prefix_tables))
-write.csv(numeric_diagnostics(cl_nmcmcout), file = sprintf('%s_nor.csv', prefix_tables))
+write.csv(numeric_diagnostics(cl_lnmcmcout), file = sprintf('%s_lnor.csv', prefix_tables))
 

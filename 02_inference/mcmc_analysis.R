@@ -1,6 +1,6 @@
 # Functions to analyse MCMC
 # Moisès Bernabeu
-# Barcelona, Janyary 2022
+# Barcelona, November 2023
 
 # Requiring packages ----
 require(ggmcmc)
@@ -47,159 +47,6 @@ get_running <- function(mcmc_df) {
   return(dm.rm)
 }
 
-plot_diag <- function(y, distr, params, title) {
-  # Plots the inferred distribution against the data histogram, the
-  # quantile-quantile plot and the CDF for a given distribution parameters
-  # samples returning a list of plots.
-  dat <- data.frame(y = y)
-  
-  x <- seq(range(dat)[1], range(dat)[2],  0.001)
-  
-  if (distr == 'gamma') {
-    ytheo = dgamma(x, params[1], params[2])
-    lcol <- 'steelblue'
-    linety <- 1
-    qq <- geom_qq(distribution = qgamma, dparams = params, colour = lcol)
-    li <- geom_line(aes(x = x, y = pgamma(x, params[1], params[2])),
-                    colour = lcol, lty = linety, size = 0.75)
-    
-  } else if (distr == 'normal') {
-    ytheo = dnorm(x, params[1], params[2])
-    lcol <- 'darkorange3'
-    linety <- 4
-    qq <- geom_qq(distribution = qnorm, dparams = params, colour = lcol)
-    li <- geom_line(aes(x = x, y = pnorm(x, params[1], params[2])),
-                    colour = lcol, lty = linety, size = 0.75)
-  }
-  
-  infdat <- data.frame(x = x, y = ytheo)
-  
-  a <- ggplot(dat) +
-    geom_histogram(aes(x = y, y = after_stat(density)), alpha = 0.4, colour = 'black') +
-    geom_line(data = infdat, aes(x, y), size = 0.75, col = lcol, lty = linety) +
-    ylab('Density') +
-    xlab('Distance') +
-    labs(colour = 'Inferred distribution', lty = 'Inferred distribution')
-  
-  b <- ggplot(dat, aes(sample = y)) +
-    geom_abline(slope = 1) +
-    qq +
-    xlab('Theoretical') +
-    ylab('Observed')
-  
-  c <- ggplot() +
-    stat_ecdf(data = dat, aes(y), geom = 'point') +
-    li +
-    ylab('CDF') +
-    xlab('Distance')
-  
-  p <- ggarrange(a, b, c, common.legend = TRUE, nrow = 1, align = 'hv')
-  p <- annotate_figure(p, top = text_grob(title, color = 'black',
-                                          face = 'bold', size = 14))
-  print(p)
-}
-
-plot_diag_2distr <- function(y, gmcmcout, nmcmcout, title) {
-  # Plots the inferred distribution against the data histogram, the
-  # quantile-quantile plot and the CDF for both Gamma and Normal distribution
-  # samples returning a plot with the 3 subplots.
-  dat <- data.frame(y = y)
-  
-  x <- seq(range(dat)[1], range(dat)[2],  0.001)
-  
-  dparams <- list('Gamma' = summary(gmcmcout)$statistics[1:2, 'Mean'],
-                  'Normal' = summary(nmcmcout)$statistics[1:2, 'Mean'])
-  names(dparams[['Gamma']]) <- NULL
-  names(dparams[['Normal']]) <- NULL
-  
-  infdat <- data.frame(x = c(x, x),
-                       y = c(dgamma(x, dparams[['Gamma']][1], dparams[['Gamma']][2]),
-                             dnorm(x, dparams[['Normal']][1], dparams[['Normal']][2])),
-                       distr = c(rep('Gamma', length(x)),
-                                 rep('Normal', length(x))))
-  
-  a <- ggplot(dat) +
-    geom_histogram(aes(x = y, y = after_stat(density)), alpha = 0.4, colour = 'black') +
-    geom_line(data = infdat, aes(x, y, colour = distr, lty = distr), size = 0.75) +
-    scale_colour_manual(values = c('Gamma' = 'steelblue', 'Normal' = 'darkorange3')) +
-    scale_linetype_manual(values = c('Gamma' = 1, 'Normal' = 4)) +
-    ylab('Density') +
-    xlab('Distance') +
-    labs(colour = 'Inferred distribution', lty = 'Inferred distribution')
-  
-  b <- ggplot(dat, aes(sample = y)) +
-    geom_abline(slope = 1) +
-    geom_qq(distribution = qnorm, dparams = dparams$Normal, colour = 'darkorange3') +
-    geom_qq(distribution = qgamma, dparams = dparams$Gamma, colour = 'steelblue') +
-    xlab('Theoretical') +
-    ylab('Observed')
-  
-  c <- ggplot() +
-    stat_ecdf(data = dat, aes(y), geom = 'point') +
-    geom_line(aes(x = x, y = pnorm(x, dparams$Normal[1], dparams$Normal[2])),
-              colour = 'darkorange3', lty = 4, size = 0.75) +
-    geom_line(aes(x = x, y = pgamma(x, dparams$Gamma[1], dparams$Gamma[2])),
-              colour = 'steelblue', lty = 1, size = 0.75) +
-    ylab('CDF') +
-    xlab('Distance')
-  
-  p <- ggarrange(a, b, c, common.legend = TRUE, nrow = 1, align = 'hv')
-  p <- annotate_figure(p, top = text_grob(title, color = 'black',
-                                          face = 'bold', size = 14))
-  return(p)
-}
-
-plot_diag_2distr_list <- function(y, gmcmcout, nmcmcout, title) {
-  # Plots the inferred distribution against the data histogram, the
-  # quantile-quantile plot and the CDF for both Gamma and Normal distribution
-  # samples returning a list of plots.
-  dat <- data.frame(y = y)
-  
-  x <- seq(range(dat)[1], range(dat)[2],  0.001)
-  
-  dparams <- list('Gamma' = summary(gmcmcout)$statistics[1:2, 'Mean'],
-                  'Normal' = summary(nmcmcout)$statistics[1:2, 'Mean'])
-  names(dparams[['Gamma']]) <- NULL
-  names(dparams[['Normal']]) <- NULL
-  
-  infdat <- data.frame(x = c(x, x),
-                       y = c(dgamma(x, dparams[['Gamma']][1], dparams[['Gamma']][2]),
-                             dnorm(x, dparams[['Normal']][1], dparams[['Normal']][2])),
-                       distr = c(rep('Gamma', length(x)),
-                                 rep('Normal', length(x))))
-  
-  a <- ggplot(dat) +
-    geom_histogram(aes(x = y, y = after_stat(density)), alpha = 0.4, colour = 'black') +
-    geom_line(data = infdat, aes(x, y, colour = distr, lty = distr), size = 0.75) +
-    scale_colour_manual(values = c('Gamma' = 'steelblue', 'Normal' = 'darkorange3')) +
-    scale_linetype_manual(values = c('Gamma' = 1, 'Normal' = 4)) +
-    ylab('Density') +
-    xlab('Distance') +
-    labs(colour = 'Inferred distribution', lty = 'Inferred distribution', title = title)
-  
-  b <- ggplot(dat, aes(sample = y)) +
-    geom_abline(slope = 1) +
-    geom_qq(distribution = qnorm, dparams = dparams$Normal, colour = 'darkorange3') +
-    geom_qq(distribution = qgamma, dparams = dparams$Gamma, colour = 'steelblue') +
-    xlab('Theoretical') +
-    ylab('Observed') +
-    labs(title = title)
-  
-  c <- ggplot() +
-    stat_ecdf(data = dat, aes(y), geom = 'point') +
-    geom_line(aes(x = x, y = pnorm(x, dparams$Normal[1], dparams$Normal[2])),
-              colour = 'darkorange3', lty = 4, size = 0.75) +
-    geom_line(aes(x = x, y = pgamma(x, dparams$Gamma[1], dparams$Gamma[2])),
-              colour = 'steelblue', lty = 1, size = 0.75) +
-    ylab('CDF') +
-    xlab('Distance') +
-    labs(title = title)
-  
-  p <- list(a + theme(legend.position = 'none'), b, c)
-  
-  return(p)
-}
-
 mcmc_to_df <- function(mcmc) {
   # Converts an MCMC list object into a dataframe to be used in ggplot
   post_list <- mcmc.list(mcmc)
@@ -207,6 +54,97 @@ mcmc_to_df <- function(mcmc) {
   post_df$Chain <- as.factor(post_df$Chain)
   
   return(post_df)
+}
+
+get_distro_sum <- function(distros) {
+  summlist <- c()
+  i = 1
+  for (distro in distros) {
+    dname <- names(distros)[i]
+    summ <- summary(distro[['clean']])
+    if (dname == 'gamma') {
+      summlist[[dname]] <- summ$statistics[1:2, 'Mean']
+      names(summlist[[dname]]) <- c('shape', 'rate')
+    } else if (dname == 'lnorm') {
+      summlist[[dname]] <- summ$statistics[c('mu', 'sig'), 'Mean']
+      names(summlist[[dname]]) <- c('shape', 'rate')
+    } else {
+      summlist[[dname]] <- summ$statistics[, 'Mean']
+    }
+    i = i + 1
+  }
+  
+  return(summlist)
+}
+
+plot_distros <- function(y, distros) {
+  require(see)
+  
+  x <- 0:(max(y, 0.9)*1000)/1000
+  distdat <- c()
+  for (distro in names(distros)) {
+    params <- distros[[distro]]
+    print(paste0('d', distro))
+    z <- get(paste0('d', distro))(x, params[1], params[2])
+    pdat <- data.frame(x, z, distribution = distro)
+    distdat <- rbind(distdat, pdat)
+  }
+  
+  p <- ggplot() +
+    geom_histogram(aes(x = y, y = after_stat(density)), colour = 'black', alpha = 0.4) +
+    geom_line(aes(x, z, colour = distribution, lty = distribution), distdat, size = 1) +
+    scale_colour_okabeito() +
+    xlab('Distance') +
+    ylab('Density') +
+    labs(colour = 'Distribution', lty = 'Distribution')
+  
+  return(p)
+}
+
+plot_cdf <- function(y, distros) {
+  require(see)
+
+  x <- 0:(max(y, 0.9)*1000)/1000
+  distdat <- c()
+  for (distro in names(distros)) {
+    params <- distros[[distro]]
+    print(paste0('p', distro))
+    z <- get(paste0('p', distro))(x, params[1], params[2])
+    pdat <- data.frame(x, z, distribution = distro)
+    distdat <- rbind(distdat, pdat)
+  }
+  
+  p <- ggplot() +
+    stat_ecdf(aes(x = y), colour = 'black', geom = 'point') +
+    geom_line(aes(x, z, colour = distribution, lty = distribution), distdat, size = 1) +
+    scale_colour_okabeito() +
+    xlab('Distance') +
+    ylab('CDF') +
+    labs(colour = 'Distribution', lty = 'Distribution')
+  
+  return(p)
+}
+
+plot_qq <- function(y, distros) {
+  require(see)
+  
+  dat <- data.frame(y = y)
+  p <- ggplot(dat, aes(sample = y)) +
+    geom_abline(slope = 1) +
+    xlab('Theoretical') +
+    ylab('Observed')
+  
+  for (distro in names(distros)) {
+    params <- distros[[distro]]
+    names(params) <- NULL
+    print(paste0('p', distro))
+    p <- p + geom_qq(distribution = get(paste0('q', distro)),
+                     dparams = params,
+                     colour = okabeito_colors(which(names(distros) == distro)))
+  }
+  p
+  
+  return(p)
 }
 
 ggtraces <- function(mcmc_df, title = '') {
@@ -230,7 +168,7 @@ ggmcmcdens <- function(mcmc_df, title = '') {
   if (class(mcmc_df) %in% c('mcmc.list', 'mcmc')) {
     mcmc_df <- mcmc_to_df(mcmc_df)
   }
-
+  
   ghists <- ggplot(mcmc_df, aes(x = value, colour = Chain)) +
     geom_density() +
     facet_wrap(~Parameter, scales = 'free', ncol = 1) +
@@ -248,7 +186,7 @@ ggmcmcsummary <- function(mcmc_df, cl_mcmc_df, title = '') {
   if (title != '') {
     p <- annotate_figure(p, top = text_grob(title, face = "bold", size = 14))
   }
-
+  
   return(p)
 }
 
@@ -270,7 +208,7 @@ ggacplot <- function(mcmc_df, title = '') {
   if (class(mcmc_df) %in% c('mcmc.list', 'mcmc')) {
     mcmc_df <- mcmc_to_df(mcmc_df)
   }
-
+  
   post_ac <- get_ac_df(mcmc_df, 100)
   ac <- ggplot(post_ac, aes(x = Lag, y = Autocorrelation, colour = Chain)) +
     geom_line() +
@@ -280,36 +218,35 @@ ggacplot <- function(mcmc_df, title = '') {
   return(ac)
 }
 
-graphic_diagnostics <- function(y, gmcmcout, nmcmcout, cl_gmcmcout, cl_nmcmcout, prefix, group, subspl) {
-  distrstats <- plot_diag_2distr(y, gmcmcout = cl_gmcmcout, nmcmcout = cl_nmcmcout,
-                                 title = paste0(group, ' sample: ', subspl * 100, '%'))
+graphic_diagnostics <- function(y, distros, prefix, group, subspl) {
+  distros_summ <- get_distro_sum(distros)
+  
+  title <- paste0(group, ' sample: ', subspl * 100, '%')
+  distrstats <- ggarrange(plot_distros(y, distros_summ),
+                          plot_cdf(y, distros_summ),
+                          plot_qq(y, distros_summ), nrow = 1, common.legend = TRUE)
+  distrstats <- annotate_figure(distrstats, top = text_grob(title, color = 'black',
+                                                            face = 'bold', size = 14))
+  
   pdf(sprintf('%s_diag.pdf', prefix), width = 10, height = 3, onefile = FALSE)
   print(distrstats)
   dev.off()
   
-  gamsum <- ggmcmcsummary(gmcmcout, cl_gmcmcout,
-                          paste0(group, ' Gamma, sample: ', subspl * 100, '%'))
-  pdf(sprintf('%s_gam_plots_gg.pdf', prefix), width = 7.8, height = 8.39, onefile = FALSE)
-  print(gamsum)
-  dev.off()
-  
-  norsum <- ggmcmcsummary(nmcmcout, cl_nmcmcout,
-                          paste0(group, ' Normal, sample: ', subspl * 100, '%'))
-  pdf(sprintf('%s_nor_plots_gg.pdf', prefix), width = 8.6, height = 8.6 / 2, onefile = FALSE)
-  print(norsum)
-  dev.off()
-  
-  gpac <- ggacplot(gmcmcout, paste0(group, ' Gamma full MCMC, sample: ', subspl * 100, '%'))
-  cl_gpac <- ggacplot(cl_gmcmcout, paste0(group, ' Gamma burnin and thinning MCMC, sample: ', subspl * 100, '%'))
-  pdf(sprintf('%s_gam_ac.pdf', prefix), width = 7, height = 7)
-  print(gpac)
-  print(cl_gpac)
-  dev.off()
-
-  npac <- ggacplot(nmcmcout, paste0(group, ' Normal full MCMC, sample: ', subspl * 100, '%'))
-  cl_npac <- ggacplot(cl_nmcmcout, paste0(group, ' Normal burnin and thinning MCMC, sample: ', subspl * 100, '%'))
-  pdf(sprintf('%s_nor_ac.pdf', prefix), width = 7, height = 7 / 2)
-  print(npac)
-  print(cl_npac)
-  dev.off()
+  for (distro in names(distros)) {
+    raw_post <- distros[[distro]][['raw']]
+    cl_post <- distros[[distro]][['clean']]
+    title <- paste0(group, ' ', distro, ', sample: ', subspl * 100, '%')
+    
+    distsumm <- ggmcmcsummary(raw_post, cl_post, title)
+    pdf(sprintf('%s_%s_plots_gg.pdf', prefix, distro), width = 7.8, height = 8.39, onefile = FALSE)
+    print(distsumm)
+    dev.off()
+    
+    pac <- ggacplot(gmcmcout, paste0('Raw posterior sample: ', title))
+    cl_pac <- ggacplot(cl_post, paste0('Burned and thinned sample: ', title))
+    pdf(sprintf('%s_gam_ac.pdf', prefix), width = 7, height = 7)
+    print(pac)
+    print(cl_pac)
+    dev.off()
+  }
 }
