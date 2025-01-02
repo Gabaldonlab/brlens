@@ -51,8 +51,58 @@ gmcmcfun <- function(y, nchains = 3, niter = 1000,
   return(post)
 }
 
+nmcmcfun <- function(y, nchains = 3, niter = 1000,
+                     thin = 1, unifmin = -100, unifmax = 100,
+                     group, prefix, subspl, burnin = 0) {
+  require(rjags)
+
+  # Model definition
+  model_text <- sprintf('model{
+    # Likelihood
+    for (i in 1:n) {
+      y[i] ~ dnorm(mu, tau)
+    }
+    
+    tau <- 1 / sig ^ 2
+    
+    # Prior distributions
+    mu ~ dunif(%d, %d)
+    sig ~ dunif(0, %d)
+  }', unifmin, unifmax, unifmax)
+  
+  # Data generation
+  N <- length(y)
+  
+  datlist <- list(y = y, n = N)
+  
+  # Preparing the model
+  model_jags <- jags.model(textConnection(model_text), 
+                           data = datlist,
+                           n.chains = nchains,
+                           n.adapt = round(niter * burnin, digits = 0))
+  
+  # Running the MCMC sampling
+  post <- coda.samples(model_jags, 
+                       variable.names = c('mu', 'sig'), 
+                       n.iter = niter,
+                       thin = thin)
+  
+  # Assigning species name to the posterior sample
+  assign(sprintf('%s_%s_nor', group, subspl), post)
+  assign(sprintf('%s_%s_y', group, subspl), y)
+  
+  # Saving the posterior sample and its information into RData file
+  save(list = c('N', 'nchains', 'niter', 'thin', 'unifmax',
+                sprintf('%s_%s_nor', group, subspl),
+                sprintf('%s_%s_y', group, subspl)),
+       file = sprintf('%s_nor_mcmc.RData', prefix))
+  
+  return(post)
+}
+
 lnmcmcfun <- function(y, nchains = 3, niter = 1000,
-                      thin = 1, unifmax = 100, group, prefix, subspl, burnin = 0) {
+                      thin = 1, unifmin = -100, unifmax = 100,
+                      group, prefix, subspl, burnin = 0) {
   require(rjags)
 
   # Model definition
@@ -69,9 +119,9 @@ lnmcmcfun <- function(y, nchains = 3, niter = 1000,
     mo <- exp(mu - sig ^ 2)
     
     # Prior distributions
-    mu ~ dunif(0, %d)
+    mu ~ dunif(%d, %d)
     sig ~ dunif(0, %d)
-  }', unifmax, unifmax)
+  }', unifmin, unifmax, unifmax)
   
   # Data generation
   N <- length(y)

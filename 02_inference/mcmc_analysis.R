@@ -220,7 +220,7 @@ ggacplot <- function(mcmc_df, title = '') {
 
 graphic_diagnostics <- function(y, distros, prefix, group, subspl) {
   distros_summ <- get_distro_sum(distros)
-  
+
   title <- paste0(group, ' sample: ', subspl * 100, '%')
   distrstats <- ggarrange(plot_distros(y, distros_summ),
                           plot_cdf(y, distros_summ),
@@ -244,7 +244,7 @@ graphic_diagnostics <- function(y, distros, prefix, group, subspl) {
     
     pac <- ggacplot(gmcmcout, paste0('Raw posterior sample: ', title))
     cl_pac <- ggacplot(cl_post, paste0('Burned and thinned sample: ', title))
-    pdf(sprintf('%s_gam_ac.pdf', prefix), width = 7, height = 7)
+    pdf(sprintf('%s_%s_ac.pdf', prefix, distro), width = 7, height = 7)
     print(pac)
     print(cl_pac)
     dev.off()
